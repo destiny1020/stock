@@ -135,12 +135,12 @@ public class StockDaily {
     private BigDecimal pb;
 
     /**
-     * 买量
+     * 买量 --- 买一挂单量
      */
     private BigDecimal buyVolume;
 
     /**
-     * 卖量
+     * 卖量 --- 卖一挂单量
      */
     private BigDecimal sellVolume;
 
