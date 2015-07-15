@@ -2,8 +2,9 @@ package com.destiny1020.stock.ths.xls;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.IOException;
 import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -31,8 +32,15 @@ public class DailyReader {
 
   private static final Pattern NUMBER_PATTERN = Pattern.compile("-?\\d+", Pattern.DOTALL);
 
-  public static void main(String[] args) throws IOException {
-    FileInputStream file = new FileInputStream(new File("D:/stock/THS/2015-07-06.xls"));
+  // file name patterns
+  private static final String FILE_PATH_PATTERN = "D:/stock/THS/%s.xls";
+  private static final String FILE_PATH_PATTERN_ZJLX = "D:/stock/THS/%s_ZJLX.xls";
+  private static final String FILE_PATH_PATTERN_ZLZC = "D:/stock/THS/%s_ZLZC.xls";
+
+  public static void main(String[] args) throws Exception {
+    String today = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
+
+    FileInputStream file = new FileInputStream(String.format(FILE_PATH_PATTERN, today));
     // new FileInputStream(new File("E:/Baidu Yun/2015-07-07.xls"));
 
     // Get the workbook instance for XLS file
@@ -415,8 +423,270 @@ public class DailyReader {
     // Basic information completed
 
     // ZJLX started
+    file = new FileInputStream(new File(String.format(FILE_PATH_PATTERN_ZJLX, today)));
 
-    // ZLJC started
+    // Get the workbook instance for XLS file
+    workbook = new HSSFWorkbook(file);
+
+    // Get first sheet from the workbook
+    sheet = workbook.getSheetAt(0);
+
+    // Get iterator to all the rows in current sheet
+    rowIterator = sheet.iterator();
+
+    // SKIP the header row --- 2 rows
+    if (rowIterator.hasNext()) {
+      rowIterator.next();
+      rowIterator.next();
+    }
+    while (rowIterator.hasNext()) {
+      Row row = rowIterator.next();
+      Iterator<Cell> cellIterator = row.cellIterator();
+
+      // get symbol
+      Cell cell = cellIterator.next();
+      String content = cell.toString();
+      StockDaily sd = stocks.get(content);
+      if (sd == null) {
+        throw new Exception(content + " is not a valid symbol, does not exist in Stocks Map.");
+      }
+
+      int idx = 1;
+      while (cellIterator.hasNext()) {
+        cell = cellIterator.next();
+        content = cell.toString();
+        switch (idx) {
+          case 0: // 代码
+          case 1: // 名称
+          case 2: // .
+          case 3: // 涨幅
+          case 4: // 现价
+            break;
+          case 5: // 净流入
+            if (!content.equals(NON_EXISTENCE)) {
+              sd.setNetCapitalIn(new BigDecimal(content));
+            }
+            break;
+          case 6: // 实时大单统计 - 流入
+            if (!content.equals(NON_EXISTENCE)) {
+              sd.setBigCapitalIn(new BigDecimal(content));
+            }
+            break;
+          case 7: // 实时大单统计 - 流出
+            if (!content.equals(NON_EXISTENCE)) {
+              sd.setBigCapitalOut(new BigDecimal(content));
+            }
+            break;
+          case 8: // 实时大单统计 - 净额
+            if (!content.equals(NON_EXISTENCE)) {
+              sd.setBigNetCapital(new BigDecimal(content));
+            }
+            break;
+          case 9: // 实时大单统计 - 净额占比
+            if (!content.equals(NON_EXISTENCE)) {
+              sd.setBigNetCapitalPercentage(new BigDecimal(content));
+            }
+            break;
+          case 10: // 实时大单统计 - 总额
+            if (!content.equals(NON_EXISTENCE)) {
+              sd.setBigCapitalTotal(new BigDecimal(content));
+            }
+            break;
+          case 11: // 实时大单统计 - 总额占比
+            if (!content.equals(NON_EXISTENCE)) {
+              sd.setBigCapitalTotalPercentage(new BigDecimal(content));
+            }
+            break;
+          case 12: // 实时中单统计 - 流入
+            if (!content.equals(NON_EXISTENCE)) {
+              sd.setMidCapitalIn(new BigDecimal(content));
+            }
+            break;
+          case 13: // 实时中单统计 - 流出
+            if (!content.equals(NON_EXISTENCE)) {
+              sd.setMidCapitalOut(new BigDecimal(content));
+            }
+            break;
+          case 14: // 实时中单统计 - 净额
+            if (!content.equals(NON_EXISTENCE)) {
+              sd.setMidNetCapital(new BigDecimal(content));
+            }
+            break;
+          case 15: // 实时中单统计 - 净额占比
+            if (!content.equals(NON_EXISTENCE)) {
+              sd.setMidNetCapitalPercentage(new BigDecimal(content));
+            }
+            break;
+          case 16: // 实时中单统计 - 总额
+            if (!content.equals(NON_EXISTENCE)) {
+              sd.setMidCapitalTotal(new BigDecimal(content));
+            }
+            break;
+          case 17: // 实时中单统计 - 总额占比
+            if (!content.equals(NON_EXISTENCE)) {
+              sd.setMidCapitalTotalPercentage(new BigDecimal(content));
+            }
+            break;
+          case 18: // 实时小单统计 - 流入
+            if (!content.equals(NON_EXISTENCE)) {
+              sd.setSmallCapitalIn(new BigDecimal(content));
+            }
+            break;
+          case 19: // 实时小单统计 - 流出
+            if (!content.equals(NON_EXISTENCE)) {
+              sd.setSmallCapitalOut(new BigDecimal(content));
+            }
+            break;
+          case 20: // 实时小单统计 - 净额
+            if (!content.equals(NON_EXISTENCE)) {
+              sd.setSmallNetCapital(new BigDecimal(content));
+            }
+            break;
+          case 21: // 实时小单统计 - 净额占比
+            if (!content.equals(NON_EXISTENCE)) {
+              sd.setSmallNetCapitalPercentage(new BigDecimal(content));
+            }
+            break;
+          case 22: // 实时小单统计 - 总额
+            if (!content.equals(NON_EXISTENCE)) {
+              sd.setSmallCapitalTotal(new BigDecimal(content));
+            }
+            break;
+          case 23: // 实时小单统计 - 总额占比
+            if (!content.equals(NON_EXISTENCE)) {
+              sd.setSmallCapitalTotalPercentage(new BigDecimal(content));
+            }
+            break;
+          default:
+            break;
+        }
+        idx++;
+      }
+    }
+
+    // ZLZC started
+    file = new FileInputStream(new File(String.format(FILE_PATH_PATTERN_ZLZC, today)));
+
+    // Get the workbook instance for XLS file
+    workbook = new HSSFWorkbook(file);
+
+    // Get first sheet from the workbook
+    sheet = workbook.getSheetAt(0);
+
+    // Get iterator to all the rows in current sheet
+    rowIterator = sheet.iterator();
+
+    // SKIP the header row --- 2 rows
+    if (rowIterator.hasNext()) {
+      rowIterator.next();
+      rowIterator.next();
+    }
+    while (rowIterator.hasNext()) {
+      Row row = rowIterator.next();
+      Iterator<Cell> cellIterator = row.cellIterator();
+
+      // get symbol
+      Cell cell = cellIterator.next();
+      String content = cell.toString();
+      StockDaily sd = stocks.get(content);
+      if (sd == null) {
+        throw new Exception(content
+            + " is not a valid symbol, does not exist in Stocks Map.(During ZLZC phase)");
+      }
+
+      int idx = 1;
+      while (cellIterator.hasNext()) {
+        cell = cellIterator.next();
+        content = cell.toString();
+        switch (idx) {
+          case 0: // 代码
+          case 1: // 名称
+          case 2: // .
+          case 3: // 现价
+            break;
+          case 4: // 今日增仓占比
+            if (!content.equals(NON_EXISTENCE)) {
+              sd.setOneIncPercentage(new BigDecimal(content));
+            }
+            break;
+          case 5: // 今日增仓排名
+            if (!content.equals(NON_EXISTENCE)) {
+              sd.setOneIncRank(new BigDecimal(content).intValue());
+            }
+            break;
+          case 6: // 今日涨幅
+            if (!content.equals(NON_EXISTENCE)) {
+              sd.setOneIncChange(new BigDecimal(content));
+            }
+            break;
+          case 7: // 2日增仓占比
+            if (!content.equals(NON_EXISTENCE)) {
+              sd.setTwoIncPercentage(new BigDecimal(content));
+            }
+            break;
+          case 8: // 2日增仓排名
+            if (!content.equals(NON_EXISTENCE)) {
+              sd.setTwoIncRank(new BigDecimal(content).intValue());
+            }
+            break;
+          case 9: // 2日涨幅
+            if (!content.equals(NON_EXISTENCE)) {
+              sd.setTwoIncChange(new BigDecimal(content));
+            }
+            break;
+          case 10: // 3日增仓占比
+            if (!content.equals(NON_EXISTENCE)) {
+              sd.setThreeIncPercentage(new BigDecimal(content));
+            }
+            break;
+          case 11: // 3日增仓排名
+            if (!content.equals(NON_EXISTENCE)) {
+              sd.setThreeIncRank(new BigDecimal(content).intValue());
+            }
+            break;
+          case 12: // 3日涨幅
+            if (!content.equals(NON_EXISTENCE)) {
+              sd.setThreeIncChange(new BigDecimal(content));
+            }
+            break;
+          case 13: // 5日增仓占比
+            if (!content.equals(NON_EXISTENCE)) {
+              sd.setFiveIncPercentage(new BigDecimal(content));
+            }
+            break;
+          case 14: // 5日增仓排名
+            if (!content.equals(NON_EXISTENCE)) {
+              sd.setFiveIncRank(new BigDecimal(content).intValue());
+            }
+            break;
+          case 15: // 5日涨幅
+            if (!content.equals(NON_EXISTENCE)) {
+              sd.setFiveIncChange(new BigDecimal(content));
+            }
+            break;
+          case 16: // 10日增仓占比
+            if (!content.equals(NON_EXISTENCE)) {
+              sd.setTenIncPercentage(new BigDecimal(content));
+            }
+            break;
+          case 17: // 10日增仓排名
+            if (!content.equals(NON_EXISTENCE)) {
+              sd.setTenIncRank(new BigDecimal(content).intValue());
+            }
+            break;
+          case 18: // 10日涨幅
+            if (!content.equals(NON_EXISTENCE)) {
+              sd.setTenIncChange(new BigDecimal(content));
+            }
+            break;
+          default:
+            break;
+        }
+        idx++;
+      }
+    }
+
+    // output stocks into ES
   }
 
   private static BigDecimal extractNumber(String target) {
