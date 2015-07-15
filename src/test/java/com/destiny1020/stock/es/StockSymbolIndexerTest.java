@@ -15,16 +15,16 @@ import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Row;
 import org.junit.Test;
 
-import com.destiny1020.stock.es.indexer.StockIndexer;
+import com.destiny1020.stock.es.indexer.StockSymbolIndexer;
 import com.destiny1020.stock.ths.model.StockSymbol;
 
-public class DailyIndexerTest extends ESTestBase {
+public class StockSymbolIndexerTest extends ESTestBase {
 
-  private static final Logger LOGGER = LogManager.getLogger(DailyIndexerTest.class);
+  private static final Logger LOGGER = LogManager.getLogger(StockSymbolIndexerTest.class);
 
   @Test
-  public void testCreateDailyMapping() throws IOException {
-    StockIndexer.recreateMappings(client);
+  public void testCreateSymbolMapping() throws IOException {
+    StockSymbolIndexer.recreateMappings(client);
   }
 
   @Test
@@ -32,7 +32,7 @@ public class DailyIndexerTest extends ESTestBase {
     StockSymbol sd1 = new StockSymbol("SZ000001", "平安银行");
     StockSymbol sd2 = new StockSymbol("SZ000002", "万科A");
 
-    StockIndexer.reindexDailySymbols(client, Arrays.asList(sd1, sd2));
+    StockSymbolIndexer.reindexStockSymbols(client, Arrays.asList(sd1, sd2));
   }
 
   /**
@@ -63,7 +63,7 @@ public class DailyIndexerTest extends ESTestBase {
       }
     }
 
-    StockIndexer.reindexDailySymbols(client, symbols);
+    StockSymbolIndexer.reindexStockSymbols(client, symbols);
   }
 
 }

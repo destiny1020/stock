@@ -4,9 +4,12 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -15,7 +18,11 @@ import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
+import org.elasticsearch.client.Client;
+import org.elasticsearch.node.Node;
+import org.elasticsearch.node.NodeBuilder;
 
+import com.destiny1020.stock.es.indexer.StockDailyIndexer;
 import com.destiny1020.stock.ths.model.StockDaily;
 
 /**
@@ -37,11 +44,35 @@ public class DailyReader {
   private static final String FILE_PATH_PATTERN_ZJLX = "D:/stock/THS/%s_ZJLX.xls";
   private static final String FILE_PATH_PATTERN_ZLZC = "D:/stock/THS/%s_ZLZC.xls";
 
+  /**
+   * Main Entry for loading data in THS exported data.
+   * 
+   * @param args
+   * @throws Exception
+   */
   public static void main(String[] args) throws Exception {
-    String today = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
+    // load today's data
+    load(new Date());
 
-    FileInputStream file = new FileInputStream(String.format(FILE_PATH_PATTERN, today));
-    // new FileInputStream(new File("E:/Baidu Yun/2015-07-07.xls"));
+    // load specific period data --- USE WHEN THERE ARE MULTIPLE FILES TO LOAD
+    //    String formatTemplate = "2015-07-%s";
+    //    List<String> dates = Arrays.asList("07", "08", "09", "10", "13", "14");
+    //
+    //    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+    //    dates.forEach(date -> {
+    //      try {
+    //        Date parsedDate = sdf.parse(String.format(formatTemplate, date));
+    //        load(parsedDate);
+    //      } catch (Exception e) {
+    //        e.printStackTrace();
+    //      }
+    //    });
+  }
+
+  public static void load(Date targetDate) throws Exception {
+    String dateStr = new SimpleDateFormat("yyyy-MM-dd").format(targetDate);
+
+    FileInputStream file = new FileInputStream(String.format(FILE_PATH_PATTERN, dateStr));
 
     // Get the workbook instance for XLS file
     HSSFWorkbook workbook = new HSSFWorkbook(file);
@@ -74,7 +105,7 @@ public class DailyReader {
           case 1: // 名称
             sd.setName(content);
             break;
-          case 2: // 融资融券Flag
+          case 2: // 融资融券
             boolean canFinancing = false;
             if (content.trim().equals("3.0")) {
               canFinancing = true;
@@ -423,7 +454,7 @@ public class DailyReader {
     // Basic information completed
 
     // ZJLX started
-    file = new FileInputStream(new File(String.format(FILE_PATH_PATTERN_ZJLX, today)));
+    file = new FileInputStream(new File(String.format(FILE_PATH_PATTERN_ZJLX, dateStr)));
 
     // Get the workbook instance for XLS file
     workbook = new HSSFWorkbook(file);
@@ -565,7 +596,7 @@ public class DailyReader {
     }
 
     // ZLZC started
-    file = new FileInputStream(new File(String.format(FILE_PATH_PATTERN_ZLZC, today)));
+    file = new FileInputStream(new File(String.format(FILE_PATH_PATTERN_ZLZC, dateStr)));
 
     // Get the workbook instance for XLS file
     workbook = new HSSFWorkbook(file);
@@ -687,6 +718,14 @@ public class DailyReader {
     }
 
     // output stocks into ES
+    Node node = NodeBuilder.nodeBuilder().client(true).node();
+    Client client = node.client();
+
+    StockDailyIndexer.reindexStockDaily(client, targetDate,
+        new ArrayList<StockDaily>(stocks.values()));
+
+    client.close();
+    node.close();
   }
 
   private static BigDecimal extractNumber(String target) {
