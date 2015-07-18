@@ -531,6 +531,9 @@ public class StockDaily {
    */
   private BigDecimal tenIncChange;
 
+  // XUEQIU related fields below
+  private int xqFollowersCount;
+
   public StockDaily(String symbol, String name) {
     super();
     this.symbol = symbol;
@@ -1374,6 +1377,14 @@ public class StockDaily {
 
   public void setCanFinancing(boolean canFinancing) {
     this.canFinancing = canFinancing;
+  }
+
+  public int getXqFollowersCount() {
+    return xqFollowersCount;
+  }
+
+  public void setXqFollowersCount(int xqFollowersCount) {
+    this.xqFollowersCount = xqFollowersCount;
   }
 
 }

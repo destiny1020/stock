@@ -323,7 +323,11 @@ public class StockDailyIndexer {
             // tenIncRank
             .startObject("tenIncRank").field("type", "integer").endObject()
             // tenIncChange
-            .startObject("tenIncChange").field("type", "double").endObject().endObject()
+            .startObject("tenIncChange").field("type", "double")
+            .endObject()
+            // XUEQIU related fields below
+            // followers_count
+            .startObject("xqFollowersCount").field("type", "integer").endObject().endObject()
             .endObject().endObject();
 
     return builder;

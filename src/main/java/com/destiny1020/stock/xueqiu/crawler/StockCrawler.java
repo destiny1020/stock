@@ -44,7 +44,7 @@ public class StockCrawler {
     cookie.setDomain("xueqiu.com");
     DEFAULT_COOKIE_STORE.addCookie(cookie);
 
-    cookie = new BasicClientCookie("xq_a_token", "4091ed7f665a8f549b5a632531c3dab9ca0cf285");
+    cookie = new BasicClientCookie("xq_a_token", "dd3c531416c4f9efd35f3898e33e9f6f572e3757");
     cookie.setDomain("xueqiu.com");
     DEFAULT_COOKIE_STORE.addCookie(cookie);
 
@@ -52,25 +52,40 @@ public class StockCrawler {
     cookie.setDomain("xueqiu.com");
     DEFAULT_COOKIE_STORE.addCookie(cookie);
 
-    cookie = new BasicClientCookie("xq_r_token", "a58f2a7203e7621175464931bbffcb782ef3669c");
+    cookie = new BasicClientCookie("xq_r_token", "fbba932b8b038bc1c36a358e6d2b414c6fa5b9b6");
     cookie.setDomain("xueqiu.com");
     DEFAULT_COOKIE_STORE.addCookie(cookie);
 
     cookie =
         new BasicClientCookie("xq_token_expire",
-            "Thu%20Jul%2030%202015%2011%3A40%3A34%20GMT%2B0800%20(CST)");
+            "Mon%20Aug%2010%202015%2019%3A11%3A47%20GMT%2B0800%20(CST)");
     cookie.setDomain("xueqiu.com");
     DEFAULT_COOKIE_STORE.addCookie(cookie);
 
-    cookie = new BasicClientCookie("xqat", "4091ed7f665a8f549b5a632531c3dab9ca0cf285");
+    cookie = new BasicClientCookie("xqat", "dd3c531416c4f9efd35f3898e33e9f6f572e3757");
     cookie.setDomain("xueqiu.com");
     DEFAULT_COOKIE_STORE.addCookie(cookie);
   }
 
   private static final String API_FOLLOWS_COUNT =
-      "http://xueqiu.com/recommend/pofriends.json?type=1&code=%s%s&start=0&count=0";
+      "http://xueqiu.com/recommend/pofriends.json?type=1&code=%s&start=0&count=0";
   private static final String API_QUOTE = "http://xueqiu.com/v4/stock/quote.json?code=%s";
   private static final String API_HISTORY = "";
+
+  public static StockFollowersInfo getFollowersInfo(String symbol) {
+    if (StringUtils.isEmpty(symbol)) {
+      return null;
+    }
+
+    String url = String.format(API_FOLLOWS_COUNT, symbol);
+    String result = getJsonResponse(url);
+
+    if (result != null) {
+      return getStockInfoCore(result, StockFollowersInfo.class);
+    }
+
+    return null;
+  }
 
   /**
    * Get Followers Count.
@@ -84,14 +99,8 @@ public class StockCrawler {
       return null;
     }
 
-    String url = String.format(API_FOLLOWS_COUNT, market.name(), code);
-    String result = getJsonResponse(url);
-
-    if (result != null) {
-      return getStockInfoCore(result, StockFollowersInfo.class);
-    }
-
-    return null;
+    String symbol = market.name() + code;
+    return getFollowersInfo(symbol);
   }
 
   /**

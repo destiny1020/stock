@@ -24,6 +24,7 @@ import org.elasticsearch.node.NodeBuilder;
 
 import com.destiny1020.stock.es.indexer.StockDailyIndexer;
 import com.destiny1020.stock.ths.model.StockDaily;
+import com.destiny1020.stock.xueqiu.crawler.StockCrawler;
 
 /**
  * Read daily exported data from THS.
@@ -52,21 +53,21 @@ public class DailyReader {
    */
   public static void main(String[] args) throws Exception {
     // load today's data
-    load(new Date());
+    //    load(new Date());
 
     // load specific period data --- USE WHEN THERE ARE MULTIPLE FILES TO LOAD
-    //    String formatTemplate = "2015-07-%s";
-    //    List<String> dates = Arrays.asList("07", "08", "09", "10", "13", "14");
-    //
-    //    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-    //    dates.forEach(date -> {
-    //      try {
-    //        Date parsedDate = sdf.parse(String.format(formatTemplate, date));
-    //        load(parsedDate);
-    //      } catch (Exception e) {
-    //        e.printStackTrace();
-    //      }
-    //    });
+    String formatTemplate = "2015-07-%s";
+    List<String> dates = Arrays.asList("17");
+
+    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+    dates.forEach(date -> {
+      try {
+        Date parsedDate = sdf.parse(String.format(formatTemplate, date));
+        load(parsedDate);
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+    });
   }
 
   public static void load(Date targetDate) throws Exception {
@@ -716,6 +717,11 @@ public class DailyReader {
         idx++;
       }
     }
+
+    // XUEQIU related
+    stocks.values().forEach(stock -> {
+      stock.setXqFollowersCount(StockCrawler.getFollowersInfo(stock.getSymbol()).getTotalcount());
+    });
 
     // output stocks into ES
     Node node = NodeBuilder.nodeBuilder().client(true).node();
