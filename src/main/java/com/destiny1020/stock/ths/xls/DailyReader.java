@@ -719,7 +719,7 @@ public class DailyReader {
     }
 
     // XUEQIU related
-    stocks.values().forEach(stock -> {
+    stocks.values().parallelStream().forEach(stock -> {
       stock.setXqFollowersCount(StockCrawler.getFollowersInfo(stock.getSymbol()).getTotalcount());
     });
 
