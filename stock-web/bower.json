@@ -16,6 +16,7 @@
     "elasticsearch": "~5.0.0",
     "angular-loading-bar": "~0.8.0",
     "lodash": "~3.10.0",
-    "angular-moment": "~0.10.1"
+    "angular-moment": "~0.10.1",
+    "angular-smart-table": "~2.1.1"
   }
 }

@@ -52,7 +52,8 @@ jsSources3rd = [
     'app/bower_components/angular-bootstrap/ui-bootstrap-tpls' + jsExt,
     'app/bower_components/elasticsearch/elasticsearch.angular' + jsExt,
     'app/bower_components/moment/moment' + jsExt,
-    'app/bower_components/angular-moment/angular-moment' + jsExt
+    'app/bower_components/angular-moment/angular-moment' + jsExt,
+    'app/bower_components/angular-smart-table/dist/smart-table' + jsExt
 ];
 
 // all application js dependencies defined here

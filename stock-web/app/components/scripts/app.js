@@ -17,6 +17,9 @@
 
         // moment
         'angularMoment',
+
+        // smart table
+        'smart-table'
       ]
       // issue: http://stackoverflow.com/questions/16569841/angularjs-html5-mode-reloading-the-page-gives-wrong-get-request
       //     ,

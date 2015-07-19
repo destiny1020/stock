@@ -1,1 +1,20 @@
-<p>This is the partial for view 1.</p>
+<table st-table="stocks" class="table table-striped">
+    <thead>
+    <tr>
+        <th>代码</th>
+        <th>Name</th>
+        <th>Percentage</th>
+        <th>Current</th>
+        <th>Change</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr ng-repeat="stock in stocks">
+        <td>{{stock.symbol}}</td>
+        <td>{{stock.name}}</td>
+        <td>{{stock.percentage}}</td>
+        <td>{{stock.current}}</td>
+        <td>{{stock.change}}</td>
+    </tr>
+    </tbody>
+</table>
