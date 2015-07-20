@@ -1,20 +1,35 @@
-<table st-table="stocks" class="table table-striped">
+<table st-table="stocks" st-pipe="callServer" class="table table-striped">
     <thead>
     <tr>
         <th>代码</th>
-        <th>Name</th>
-        <th>Percentage</th>
-        <th>Current</th>
-        <th>Change</th>
+        <th>名称</th>
+        <th st-sort="current">现价</th>
+        <th st-sort="percentage" st-sort-default="reverse">涨幅</th>
+        <th st-sort="twoIncChange">2日涨幅</th>
+        <th st-sort="threeIncChange">3日涨幅</th>
+        <th st-sort="fiveIncChange">5日涨幅</th>
+        <th st-sort="tenIncChange">10日涨幅</th>
+        <th st-sort="xqFollowersCount">XQ关注者</th>
     </tr>
     </thead>
     <tbody>
     <tr ng-repeat="stock in stocks">
         <td>{{stock.symbol}}</td>
         <td>{{stock.name}}</td>
-        <td>{{stock.percentage}}</td>
-        <td>{{stock.current}}</td>
-        <td>{{stock.change}}</td>
+        <td>{{stock.current | number:2}}</td>
+        <td>{{stock.percentage | number:2}}%</td>
+        <td>{{stock.twoIncChange | number:2}}%</td>
+        <td>{{stock.threeIncChange | number:2}}%</td>
+        <td>{{stock.fiveIncChange | number:2}}%</td>
+        <td>{{stock.tenIncChange | number:2}}%</td>
+        <td>{{stock.xqFollowersCount}}</td>
     </tr>
     </tbody>
+    <tfoot>
+    <tr>
+        <td class="text-center" st-pagination="" st-template="partials/pagination.custom.html"
+            st-items-by-page="10" colspan="9">
+        </td>
+    </tr>
+    </tfoot>
 </table>

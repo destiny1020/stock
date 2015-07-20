@@ -12,30 +12,27 @@ app.factory('searchService', ['$q', 'esFactory', '$location', function($q, elast
      *
      * Returns a promise.
      */
-    var search = function(searchDto, page){
+    var search = function(searchDto){
         var deferred = $q.defer();
 
         var query = searchDto.query,
             type = searchDto.type,
-            size = searchDto.size || 10;
+            size = searchDto.size || 10,
+            sort = searchDto.sort || {},
+            from = searchDto.from || 0;
 
-        page = (page === undefined) ? currentPage() : page;
+        // append common sorting behaviors
+        sort._id = { 'order' : 'asc' };
+        sort._score = { 'order' : 'desc' };
 
         var searchJson = searchDto.json || {
                 'index': 'stock',
                 'type': type,
                 'body': {
                     'size': size,
-                    'from': (page || 0) * size,
+                    'from': from,
                     'query': query,
-                    'sort': {
-                        '_score': {
-                            'order': 'desc'
-                        },
-                        '_id': {
-                            'order': 'asc'
-                        }
-                    }
+                    'sort': sort
                 }
             };
 
@@ -48,9 +45,6 @@ app.factory('searchService', ['$q', 'esFactory', '$location', function($q, elast
                 hits_out.push(hitsArray[ii]._source);
             }
 
-            // set current actress page number
-            _currentPage = page;
-
             deferred.resolve({
                 total: hitsObject.total,
                 records: hits_out
@@ -60,14 +54,8 @@ app.factory('searchService', ['$q', 'esFactory', '$location', function($q, elast
         return deferred.promise;
     };
 
-    var _currentPage;
-    var currentPage = function() {
-        return _currentPage || 0;
-    };
-
     return {
-        'search': search,
-        'currentPage': currentPage
+        'search': search
     };
 
 }]);
