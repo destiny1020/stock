@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -23,12 +24,13 @@ public class StockSymbolIndexerTest extends ESTestBase {
   private static final Logger LOGGER = LogManager.getLogger(StockSymbolIndexerTest.class);
 
   @Test
-  public void testCreateSymbolMapping() throws IOException {
+  public void testCreateSymbolMapping() throws IOException, InterruptedException,
+      ExecutionException {
     StockSymbolIndexer.recreateMappings(client);
   }
 
   @Test
-  public void testReindexStocks() throws IOException {
+  public void testReindexStocks() throws IOException, InterruptedException, ExecutionException {
     StockSymbol sd1 = new StockSymbol("SZ000001", "平安银行");
     StockSymbol sd2 = new StockSymbol("SZ000002", "万科A");
 
@@ -39,9 +41,12 @@ public class StockSymbolIndexerTest extends ESTestBase {
    * Reindex all stock symbols
    * 
    * @throws IOException
+   * @throws ExecutionException
+   * @throws InterruptedException
    */
   @Test
-  public void testReindexAllStockSymbols() throws IOException {
+  public void testReindexAllStockSymbols() throws IOException, InterruptedException,
+      ExecutionException {
     FileInputStream file = new FileInputStream(new File("D:/stock/THS/2015-07-06.xls"));
 
     // Get the workbook instance for XLS file

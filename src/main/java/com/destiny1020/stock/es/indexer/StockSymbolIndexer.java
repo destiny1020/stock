@@ -2,17 +2,25 @@ package com.destiny1020.stock.es.indexer;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.elasticsearch.action.admin.indices.close.CloseIndexRequestBuilder;
+import org.elasticsearch.action.admin.indices.close.CloseIndexResponse;
 import org.elasticsearch.action.admin.indices.mapping.delete.DeleteMappingResponse;
 import org.elasticsearch.action.admin.indices.mapping.get.GetMappingsResponse;
 import org.elasticsearch.action.admin.indices.mapping.put.PutMappingResponse;
+import org.elasticsearch.action.admin.indices.open.OpenIndexResponse;
+import org.elasticsearch.action.admin.indices.settings.put.UpdateSettingsRequest;
+import org.elasticsearch.action.admin.indices.settings.put.UpdateSettingsResponse;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.client.Client;
+import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentFactory;
+import org.neo4j.cypher.internal.compiler.v2_1.ast.rewriters.isolateAggregation;
 
 import com.destiny1020.stock.es.ElasticsearchConsts;
 import com.destiny1020.stock.ths.model.StockSymbol;
@@ -23,7 +31,7 @@ public class StockSymbolIndexer {
   private static final Logger LOGGER = LogManager.getLogger(StockSymbolIndexer.class);
 
   public static void reindexStockSymbols(Client client, List<StockSymbol> stocks)
-      throws IOException {
+      throws IOException, InterruptedException, ExecutionException {
     // create mappings for stock/symbol
     recreateMappings(client);
 
@@ -31,7 +39,8 @@ public class StockSymbolIndexer {
     importStocks(client, stocks);
   }
 
-  public static void recreateMappings(Client client) throws IOException {
+  public static void recreateMappings(Client client) throws IOException, InterruptedException,
+      ExecutionException {
     // delete if any
     // delete mapping will cause all existing data been removed
     GetMappingsResponse getResponse =
@@ -60,6 +69,65 @@ public class StockSymbolIndexer {
     } else {
       LOGGER.error("TYPE_SYMBOL and mapping creation failed !");
     }
+  }
+
+  /**
+   * Add filter and analyzer to the existing STOCK index.
+   * 
+   * @param client
+   * @throws InterruptedException
+   * @throws ExecutionException
+   * @throws IOException
+   */
+  public static void updateIndexSettings(Client client) throws InterruptedException,
+      ExecutionException, IOException {
+    // close the index
+    CloseIndexResponse closeIndexResponse =
+        client.admin().indices().prepareClose(ElasticsearchConsts.INDEX_STOCK).execute().get();
+    if (closeIndexResponse.isAcknowledged()) {
+      LOGGER.info("INDEX Stock has been closed !");
+    } else {
+      LOGGER.info("INDEX Stock closing failed !");
+      throw new RuntimeException("INDEX Stock cannot close...");
+    }
+
+    // settings for the analyers
+    UpdateSettingsResponse usr =
+        client.admin().indices().prepareUpdateSettings()
+            .setIndices(ElasticsearchConsts.INDEX_STOCK).setSettings(getStockSymbolSettings())
+            .execute().get();
+    if (usr.isAcknowledged()) {
+      LOGGER.info("INDEX Stock has been updated with filter and analyzer !");
+    } else {
+      LOGGER.error("INDEX Stock updating failed !");
+    }
+
+    // open the index
+    OpenIndexResponse openIndexResponse =
+        client.admin().indices().prepareOpen(ElasticsearchConsts.INDEX_STOCK).execute().get();
+    if (openIndexResponse.isAcknowledged()) {
+      LOGGER.info("INDEX Stock has been opened !");
+    } else {
+      LOGGER.info("INDEX Stock opening failed !");
+      throw new RuntimeException("INDEX Stock cannot open...");
+    }
+  }
+
+  private static String getStockSymbolSettings() throws IOException {
+    return XContentFactory
+        .jsonBuilder()
+        .startObject()
+        .startObject("analysis")
+        // filter section
+        .startObject("filter").startObject("edgengram").field("type", "edgeNGram")
+        .field("min_gram", "1").field("max_gram", "255")
+        .endObject()
+        .endObject()
+        // analyzer section
+        .startObject("analyzer").startObject("back_edge_ngram_analyzer").field("type", "custom")
+        .startArray("char_filter").endArray().field("tokenizer", "whitespace").startArray("filter")
+        .value("reverse").value("edgengram").value("reverse").endArray().endObject().endObject()
+        .endObject().endObject().string();
   }
 
   //  {
@@ -104,41 +172,28 @@ public class StockSymbolIndexer {
   private static XContentBuilder getStockSymbolMappings() throws IOException {
     XContentBuilder builder =
         XContentFactory.jsonBuilder().startObject().startObject(ElasticsearchConsts.TYPE_SYMBOL)
-            .field("dynamic", "strict")
-            .startObject("_id")
-              .field("path", "symbol")
+            .field("dynamic", "strict").startObject("_id")
+            .field("path", "symbol")
             .endObject()
             .startObject("_all")
-              .field("enabled", "true")
+            .field("enabled", "true")
             .endObject()
             .startObject("properties")
-              // symbol
-              .startObject("symbol")
-                .field("type", "string")
-                .startObject("fields")
-                  .startObject("raw")
-                    .field("type", "string")
-                    .field("index", "not_analyzed")
-                  .endObject()
-                .endObject()
-              .endObject()
-              // name
-              .startObject("name")
-                .field("type", "string")
-                .field("analyzer", "ik")
-                .startObject("fields")
-                  .startObject("raw")
-                    .field("type", "string")
-                    .field("index", "not_analyzed")
-                  .endObject()
-                  .startObject("standard")
-                    .field("type", "string")
-                  .endObject()
-                .endObject()
-              .endObject()
+            // symbol
+            .startObject("symbol").field("type", "string").startObject("fields").startObject("raw")
+            .field("type", "string")
+            .field("index", "not_analyzed")
             .endObject()
-          .endObject()
-        .endObject();
+            .endObject()
+            .endObject()
+            // name
+            .startObject("name").field("type", "string").field("analyzer", "ik")
+            .startObject("fields").startObject("raw").field("type", "string")
+            .field("index", "not_analyzed").endObject().startObject("standard")
+            .field("type", "string").endObject().endObject().endObject()
+            // block
+            .startObject("block").field("type", "string").field("index", "not_analyzed")
+            .endObject().endObject().endObject().endObject();
 
     return builder;
   }

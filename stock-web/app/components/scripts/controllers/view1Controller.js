@@ -11,17 +11,21 @@ app.controller('View1Ctrl', ['$scope', 'searchService',
                     //symbol: "SH600588"
                 }
             },
-            type: "daily-20150720",
+            type: "daily-20150721",
             sort: {
                 'percentage': 'desc'
             }
         };
 
         $scope.stocks = [];
+        $scope.itemsByPage = 10;
+        $scope.tableState = undefined;
 
         // table related
         $scope.callServer = function(tableState) {
             $scope.isLoading = true;
+            $scope.tableState = tableState;
+
             var pagination = tableState.pagination;
 
             var from = pagination.start || 0;     // This is NOT the page number, but the index of item in the list that you want to use to display the table.
@@ -45,6 +49,15 @@ app.controller('View1Ctrl', ['$scope', 'searchService',
                 tableState.pagination.numberOfPages = Math.ceil(result.total / number);//set the number of pages so the pagination can update
                 $scope.isLoading = false;
             });
+        };
+
+        $scope.chooseItemsPerPage = function(itemByPage) {
+            $scope.itemsByPage = itemByPage;
+
+            // update pagination field
+            $scope.tableState.pagination.number = itemByPage;
+
+            $scope.callServer($scope.tableState);
         };
     }
 ]);

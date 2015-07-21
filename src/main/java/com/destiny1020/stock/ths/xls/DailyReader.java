@@ -53,21 +53,21 @@ public class DailyReader {
    */
   public static void main(String[] args) throws Exception {
     // load today's data
-    load(new Date());
+    //    load(new Date());
 
-    // load specific period data --- USE WHEN THERE ARE MULTIPLE FILES TO LOAD
-    //    String formatTemplate = "2015-07-%s";
-    //    List<String> dates = Arrays.asList("17");
-    //
-    //    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-    //    dates.forEach(date -> {
-    //      try {
-    //        Date parsedDate = sdf.parse(String.format(formatTemplate, date));
-    //        load(parsedDate);
-    //      } catch (Exception e) {
-    //        e.printStackTrace();
-    //      }
-    //    });
+    //     load specific period data --- USE WHEN THERE ARE MULTIPLE FILES TO LOAD
+    String formatTemplate = "2015-07-%s";
+    List<String> dates = Arrays.asList("21");
+
+    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+    dates.forEach(date -> {
+      try {
+        Date parsedDate = sdf.parse(String.format(formatTemplate, date));
+        load(parsedDate);
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+    });
   }
 
   public static void load(Date targetDate) throws Exception {
