@@ -14,4 +14,9 @@ public class ElasticsearchConsts {
    */
   public static final String TYPE_DAILY = "daily";
 
+  /**
+   * Stores daily block indices
+   */
+  public static final String TYPE_BLOCK = "block";
+
 }

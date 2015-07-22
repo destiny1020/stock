@@ -57,7 +57,7 @@ public class DailyReader {
 
     //     load specific period data --- USE WHEN THERE ARE MULTIPLE FILES TO LOAD
     String formatTemplate = "2015-07-%s";
-    List<String> dates = Arrays.asList("21");
+    List<String> dates = Arrays.asList("22");
 
     SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
     dates.forEach(date -> {
@@ -451,7 +451,6 @@ public class DailyReader {
       stocks.put(sd.getSymbol(), sd);
     }
 
-    System.out.println(stocks.size());
     // Basic information completed
 
     // ZJLX started

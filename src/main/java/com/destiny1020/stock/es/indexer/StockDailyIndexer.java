@@ -333,7 +333,7 @@ public class StockDailyIndexer {
     return builder;
   }
 
-  private static void importStocks(Client client, String dateStr, List<StockDaily> stocks) {
+  private static void importStocks(Client client, String typeName, List<StockDaily> stocks) {
     BulkRequestBuilder bulkRequest = client.prepareBulk();
 
     ObjectMapper mapper = new ObjectMapper(); // create once, reuse
@@ -341,7 +341,7 @@ public class StockDailyIndexer {
       String json;
       try {
         json = mapper.writeValueAsString(stock);
-        bulkRequest.add(client.prepareIndex(ElasticsearchConsts.INDEX_STOCK, dateStr,
+        bulkRequest.add(client.prepareIndex(ElasticsearchConsts.INDEX_STOCK, typeName,
             stock.getSymbol()).setSource(json));
       } catch (Exception e) {
         e.printStackTrace();
