@@ -6,21 +6,17 @@ import java.util.concurrent.ExecutionException;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.elasticsearch.action.admin.indices.close.CloseIndexRequestBuilder;
 import org.elasticsearch.action.admin.indices.close.CloseIndexResponse;
 import org.elasticsearch.action.admin.indices.mapping.delete.DeleteMappingResponse;
 import org.elasticsearch.action.admin.indices.mapping.get.GetMappingsResponse;
 import org.elasticsearch.action.admin.indices.mapping.put.PutMappingResponse;
 import org.elasticsearch.action.admin.indices.open.OpenIndexResponse;
-import org.elasticsearch.action.admin.indices.settings.put.UpdateSettingsRequest;
 import org.elasticsearch.action.admin.indices.settings.put.UpdateSettingsResponse;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.client.Client;
-import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentFactory;
-import org.neo4j.cypher.internal.compiler.v2_1.ast.rewriters.isolateAggregation;
 
 import com.destiny1020.stock.es.ElasticsearchConsts;
 import com.destiny1020.stock.ths.model.StockSymbol;
@@ -72,7 +68,10 @@ public class StockSymbolIndexer {
   }
 
   /**
-   * Add filter and analyzer to the existing STOCK index.
+   * Add tokenizer and analyzer to the existing STOCK index.
+   * Firstly, close the index.
+   * Secondly, update the settings.
+   * Thirdly, open the index.
    * 
    * @param client
    * @throws InterruptedException
@@ -114,20 +113,17 @@ public class StockSymbolIndexer {
   }
 
   private static String getStockSymbolSettings() throws IOException {
-    return XContentFactory
-        .jsonBuilder()
+    return XContentFactory.jsonBuilder()
         .startObject()
         .startObject("analysis")
-        // filter section
-        .startObject("filter").startObject("edgengram").field("type", "edgeNGram")
-        .field("min_gram", "1").field("max_gram", "255")
-        .endObject()
+        // tokenizer section
+        .startObject("tokenizer").startObject("symbol_t").field("type", "nGram")
+        .field("min_gram", "1").field("max_gram", "8").endObject()
         .endObject()
         // analyzer section
-        .startObject("analyzer").startObject("back_edge_ngram_analyzer").field("type", "custom")
-        .startArray("char_filter").endArray().field("tokenizer", "whitespace").startArray("filter")
-        .value("reverse").value("edgengram").value("reverse").endArray().endObject().endObject()
-        .endObject().endObject().string();
+        .startObject("analyzer").startObject("symbol_analyzer").field("type", "custom")
+        .startArray("char_filter").endArray().field("tokenizer", "symbol_t").startArray("filter")
+        .value("lowercase").endArray().endObject().endObject().endObject().endObject().string();
   }
 
   //  {
@@ -172,7 +168,8 @@ public class StockSymbolIndexer {
   private static XContentBuilder getStockSymbolMappings() throws IOException {
     XContentBuilder builder =
         XContentFactory.jsonBuilder().startObject().startObject(ElasticsearchConsts.TYPE_SYMBOL)
-            .field("dynamic", "strict").startObject("_id")
+            .field("dynamic", "strict")
+            .startObject("_id")
             .field("path", "symbol")
             .endObject()
             .startObject("_all")
@@ -180,8 +177,9 @@ public class StockSymbolIndexer {
             .endObject()
             .startObject("properties")
             // symbol
-            .startObject("symbol").field("type", "string").startObject("fields").startObject("raw")
-            .field("type", "string")
+            .startObject("symbol").field("type", "string")
+            .field("index_analyzer", "symbol_analyzer").field("search_analyzer", "standard")
+            .startObject("fields").startObject("raw").field("type", "string")
             .field("index", "not_analyzed")
             .endObject()
             .endObject()

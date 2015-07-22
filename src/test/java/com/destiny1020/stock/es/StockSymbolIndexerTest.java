@@ -47,7 +47,8 @@ public class StockSymbolIndexerTest extends ESTestBase {
   @Test
   public void testReindexAllStockSymbols() throws IOException, InterruptedException,
       ExecutionException {
-    FileInputStream file = new FileInputStream(new File("D:/stock/THS/2015-07-06.xls"));
+    LOGGER.info("About to reindex all stock symbols.");
+    FileInputStream file = new FileInputStream(new File("D:/stock/THS/2015-07-22.xls"));
 
     // Get the workbook instance for XLS file
     HSSFWorkbook workbook = new HSSFWorkbook(file);
