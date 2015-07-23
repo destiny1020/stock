@@ -110,7 +110,7 @@ public class StockDailyIndexer {
             // canFinancing
             .startObject("canFinancing").field("type", "boolean")
             .endObject()
-            // precentage
+            // percentage
             .startObject("percentage").field("type", "double")
             .endObject()
             // current

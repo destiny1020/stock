@@ -19,6 +19,7 @@ import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentFactory;
 
 import com.destiny1020.stock.es.ElasticsearchConsts;
+import com.destiny1020.stock.es.setting.CommonSettings;
 import com.destiny1020.stock.ths.model.StockSymbol;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -113,17 +114,7 @@ public class StockSymbolIndexer {
   }
 
   private static String getStockSymbolSettings() throws IOException {
-    return XContentFactory.jsonBuilder()
-        .startObject()
-        .startObject("analysis")
-        // tokenizer section
-        .startObject("tokenizer").startObject("symbol_t").field("type", "nGram")
-        .field("min_gram", "1").field("max_gram", "8").endObject()
-        .endObject()
-        // analyzer section
-        .startObject("analyzer").startObject("symbol_analyzer").field("type", "custom")
-        .startArray("char_filter").endArray().field("tokenizer", "symbol_t").startArray("filter")
-        .value("lowercase").endArray().endObject().endObject().endObject().endObject().string();
+    return CommonSettings.getSymbolAnalyzerSettings();
   }
 
   //  {

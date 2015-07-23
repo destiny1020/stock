@@ -3,7 +3,7 @@ package com.destiny1020.stock.ths.model;
 import java.math.BigDecimal;
 
 /**
- * Represent each Index provided by THS.
+ * Represent each Block/Conception Index provided by THS.
  * 
  * @author Administrator
  *

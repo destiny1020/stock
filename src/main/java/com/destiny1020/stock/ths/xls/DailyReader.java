@@ -3,6 +3,7 @@ package com.destiny1020.stock.ths.xls;
 import java.io.File;
 import java.io.FileInputStream;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -57,7 +58,7 @@ public class DailyReader {
 
     //     load specific period data --- USE WHEN THERE ARE MULTIPLE FILES TO LOAD
     String formatTemplate = "2015-07-%s";
-    List<String> dates = Arrays.asList("22");
+    List<String> dates = Arrays.asList("23");
 
     SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
     dates.forEach(date -> {
@@ -450,8 +451,9 @@ public class DailyReader {
       }
       // calculate the averagePrice
       if (sd.getDealNumber() != null && sd.getAverageSharePerDeal() != null) {
-        sd.setAveragePrice(sd.getAmountPerDeal().divide(sd.getAverageSharePerDeal())
-            .setScale(3, BigDecimal.ROUND_HALF_UP));
+        System.out.println(sd.getDealNumber() + " ----- " + sd.getAverageSharePerDeal());
+        sd.setAveragePrice(sd.getAmountPerDeal().divide(sd.getAverageSharePerDeal(), 3,
+            RoundingMode.HALF_UP));
       }
 
       stocks.put(sd.getSymbol(), sd);
