@@ -448,6 +448,12 @@ public class DailyReader {
         }
         idx++;
       }
+      // calculate the averagePrice
+      if (sd.getDealNumber() != null && sd.getAverageSharePerDeal() != null) {
+        sd.setAveragePrice(sd.getAmountPerDeal().divide(sd.getAverageSharePerDeal())
+            .setScale(3, BigDecimal.ROUND_HALF_UP));
+      }
+
       stocks.put(sd.getSymbol(), sd);
     }
 
