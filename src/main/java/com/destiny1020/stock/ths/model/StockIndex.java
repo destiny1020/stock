@@ -3,7 +3,7 @@ package com.destiny1020.stock.ths.model;
 import java.math.BigDecimal;
 
 /**
- * Represent each Index provided by THS.
+ * Represent each Index provided by THS. 
  * 
  * @author Administrator
  *
@@ -11,59 +11,24 @@ import java.math.BigDecimal;
 public class StockIndex {
 
   /**
-   * 板块名称
+   * 代码
+   */
+  private String symbol;
+
+  /**
+   * 名称
    */
   private String name;
 
   /**
-   * 涨幅%
+   * 现价
    */
-  private BigDecimal percentage;
+  private BigDecimal current;
 
   /**
-   * 主力净量 --- Main Force Net Factor
+   * 涨跌
    */
-  private BigDecimal mfNetFactor;
-
-  /**
-   * 主力金额 --- Main Force Amount
-   */
-  private BigDecimal mfAmount;
-
-  /**
-   * 量比 - Quantity Relative Ratio
-   */
-  private BigDecimal qrr;
-
-  /**
-   * 涨家数
-   */
-  private int riseCount;
-
-  /**
-   * 跌家数
-   */
-  private int fallCount;
-
-  /**
-   * 领涨股
-   */
-  private String pioneer;
-
-  /**
-   * 5日涨幅
-   */
-  private BigDecimal fiveIncPercentage;
-
-  /**
-   * 10日涨幅
-   */
-  private BigDecimal tenIncPercentage;
-
-  /**
-   * 20日涨幅
-   */
-  private BigDecimal twentyIncPercentage;
+  private BigDecimal change;
 
   /**
    * 总手 - 实际上导出的单位是**股
@@ -71,19 +36,52 @@ public class StockIndex {
   private BigDecimal volume;
 
   /**
+   * 现手 - 导出单位也是股。对深市更有意义，因为该数值体现的是最后集合竞价的成交量
+   */
+  private BigDecimal latestVolume;
+
+  /**
+   * 开盘
+   */
+  private BigDecimal open;
+
+  /**
+   * 最高
+   */
+  private BigDecimal high;
+
+  /**
+   * 最低
+   */
+  private BigDecimal low;
+
+  /**
+   * 涨幅%
+   */
+  private BigDecimal percentage;
+
+  /**
+   * 量比 - Quantity Relative Ratio
+   */
+  private BigDecimal qrr;
+
+  /**
+   * 振幅
+   */
+  private BigDecimal amplitude;
+
+  /**
    * 总金额
    */
   private BigDecimal amount;
 
-  /**
-   * 总市值
-   */
-  private BigDecimal totalMarketCapital;
+  public String getSymbol() {
+    return symbol;
+  }
 
-  /**
-   * 流通市值
-   */
-  private BigDecimal circulationMarketCapital;
+  public void setSymbol(String symbol) {
+    this.symbol = symbol;
+  }
 
   public String getName() {
     return name;
@@ -93,84 +91,20 @@ public class StockIndex {
     this.name = name;
   }
 
-  public BigDecimal getPercentage() {
-    return percentage;
+  public BigDecimal getCurrent() {
+    return current;
   }
 
-  public void setPercentage(BigDecimal percentage) {
-    this.percentage = percentage;
+  public void setCurrent(BigDecimal current) {
+    this.current = current;
   }
 
-  public BigDecimal getMfNetFactor() {
-    return mfNetFactor;
+  public BigDecimal getChange() {
+    return change;
   }
 
-  public void setMfNetFactor(BigDecimal mfNetFactor) {
-    this.mfNetFactor = mfNetFactor;
-  }
-
-  public BigDecimal getMfAmount() {
-    return mfAmount;
-  }
-
-  public void setMfAmount(BigDecimal mfAmount) {
-    this.mfAmount = mfAmount;
-  }
-
-  public BigDecimal getQrr() {
-    return qrr;
-  }
-
-  public void setQrr(BigDecimal qrr) {
-    this.qrr = qrr;
-  }
-
-  public int getRiseCount() {
-    return riseCount;
-  }
-
-  public void setRiseCount(int riseCount) {
-    this.riseCount = riseCount;
-  }
-
-  public int getFallCount() {
-    return fallCount;
-  }
-
-  public void setFallCount(int fallCount) {
-    this.fallCount = fallCount;
-  }
-
-  public String getPioneer() {
-    return pioneer;
-  }
-
-  public void setPioneer(String pioneer) {
-    this.pioneer = pioneer;
-  }
-
-  public BigDecimal getFiveIncPercentage() {
-    return fiveIncPercentage;
-  }
-
-  public void setFiveIncPercentage(BigDecimal fiveIncPercentage) {
-    this.fiveIncPercentage = fiveIncPercentage;
-  }
-
-  public BigDecimal getTenIncPercentage() {
-    return tenIncPercentage;
-  }
-
-  public void setTenIncPercentage(BigDecimal tenIncPercentage) {
-    this.tenIncPercentage = tenIncPercentage;
-  }
-
-  public BigDecimal getTwentyIncPercentage() {
-    return twentyIncPercentage;
-  }
-
-  public void setTwentyIncPercentage(BigDecimal twentyIncPercentage) {
-    this.twentyIncPercentage = twentyIncPercentage;
+  public void setChange(BigDecimal change) {
+    this.change = change;
   }
 
   public BigDecimal getVolume() {
@@ -181,6 +115,62 @@ public class StockIndex {
     this.volume = volume;
   }
 
+  public BigDecimal getLatestVolume() {
+    return latestVolume;
+  }
+
+  public void setLatestVolume(BigDecimal latestVolume) {
+    this.latestVolume = latestVolume;
+  }
+
+  public BigDecimal getOpen() {
+    return open;
+  }
+
+  public void setOpen(BigDecimal open) {
+    this.open = open;
+  }
+
+  public BigDecimal getHigh() {
+    return high;
+  }
+
+  public void setHigh(BigDecimal high) {
+    this.high = high;
+  }
+
+  public BigDecimal getLow() {
+    return low;
+  }
+
+  public void setLow(BigDecimal low) {
+    this.low = low;
+  }
+
+  public BigDecimal getPercentage() {
+    return percentage;
+  }
+
+  public void setPercentage(BigDecimal percentage) {
+    this.percentage = percentage;
+  }
+
+  public BigDecimal getQrr() {
+    return qrr;
+  }
+
+  public void setQrr(BigDecimal qrr) {
+    this.qrr = qrr;
+  }
+
+  public BigDecimal getAmplitude() {
+    return amplitude;
+  }
+
+  public void setAmplitude(BigDecimal amplitude) {
+    this.amplitude = amplitude;
+  }
+
   public BigDecimal getAmount() {
     return amount;
   }
@@ -189,19 +179,4 @@ public class StockIndex {
     this.amount = amount;
   }
 
-  public BigDecimal getTotalMarketCapital() {
-    return totalMarketCapital;
-  }
-
-  public void setTotalMarketCapital(BigDecimal totalMarketCapital) {
-    this.totalMarketCapital = totalMarketCapital;
-  }
-
-  public BigDecimal getCirculationMarketCapital() {
-    return circulationMarketCapital;
-  }
-
-  public void setCirculationMarketCapital(BigDecimal circulationMarketCapital) {
-    this.circulationMarketCapital = circulationMarketCapital;
-  }
 }

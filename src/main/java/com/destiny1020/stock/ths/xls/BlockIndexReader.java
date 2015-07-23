@@ -19,8 +19,8 @@ import org.elasticsearch.client.Client;
 import org.elasticsearch.node.Node;
 import org.elasticsearch.node.NodeBuilder;
 
-import com.destiny1020.stock.es.indexer.StockIndexIndexer;
-import com.destiny1020.stock.ths.model.StockIndex;
+import com.destiny1020.stock.es.indexer.StockBlockIndexIndexer;
+import com.destiny1020.stock.ths.model.StockBlockIndex;
 
 /**
  * Read daily indices provided by THS.
@@ -72,7 +72,7 @@ public class BlockIndexReader {
     Iterator<Row> rowIterator = sheet.iterator();
 
     // NAME -> INDEX
-    Map<String, StockIndex> indices = new HashMap<String, StockIndex>();
+    Map<String, StockBlockIndex> indices = new HashMap<String, StockBlockIndex>();
 
     // SKIP the header row
     if (rowIterator.hasNext()) {
@@ -83,7 +83,7 @@ public class BlockIndexReader {
       Row row = rowIterator.next();
       Iterator<Cell> cellIterator = row.cellIterator();
 
-      StockIndex si = new StockIndex();
+      StockBlockIndex si = new StockBlockIndex();
       int idx = 0;
       while (cellIterator.hasNext()) {
         Cell cell = cellIterator.next();
@@ -176,8 +176,8 @@ public class BlockIndexReader {
     Node node = NodeBuilder.nodeBuilder().client(true).node();
     Client client = node.client();
 
-    StockIndexIndexer.reindexStockIndex(client, targetDate,
-        new ArrayList<StockIndex>(indices.values()));
+    StockBlockIndexIndexer.reindexStockIndex(client, targetDate,
+        new ArrayList<StockBlockIndex>(indices.values()));
 
     client.close();
     node.close();

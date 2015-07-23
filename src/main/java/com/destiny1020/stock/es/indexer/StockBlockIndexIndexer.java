@@ -18,7 +18,7 @@ import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentFactory;
 
 import com.destiny1020.stock.es.ElasticsearchConsts;
-import com.destiny1020.stock.ths.model.StockIndex;
+import com.destiny1020.stock.ths.model.StockBlockIndex;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
@@ -27,17 +27,17 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * @author Administrator
  *
  */
-public class StockIndexIndexer {
+public class StockBlockIndexIndexer {
 
-  private static final Logger LOGGER = LogManager.getLogger(StockIndexIndexer.class);
+  private static final Logger LOGGER = LogManager.getLogger(StockBlockIndexIndexer.class);
 
-  public static void reindexStockIndex(Client client, Date date, ArrayList<StockIndex> indices)
+  public static void reindexStockIndex(Client client, Date date, ArrayList<StockBlockIndex> indices)
       throws ElasticsearchException, IOException {
     // default to recreate type
     reindexStockIndex(client, indices, date, true);
   }
 
-  private static void reindexStockIndex(Client client, ArrayList<StockIndex> indices, Date date,
+  private static void reindexStockIndex(Client client, ArrayList<StockBlockIndex> indices, Date date,
       boolean recreate) throws ElasticsearchException, IOException {
     String dateStr = new SimpleDateFormat("yyyyMMdd").format(date);
     String typeName = String.format("%s-%s", ElasticsearchConsts.TYPE_BLOCK, dateStr);
@@ -50,7 +50,7 @@ public class StockIndexIndexer {
   }
 
   private static void importBlockIndices(Client client, String typeName,
-      ArrayList<StockIndex> indices) {
+      ArrayList<StockBlockIndex> indices) {
     BulkRequestBuilder bulkRequest = client.prepareBulk();
 
     ObjectMapper mapper = new ObjectMapper(); // create once, reuse
