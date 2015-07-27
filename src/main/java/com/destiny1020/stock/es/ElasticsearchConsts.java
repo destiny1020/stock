@@ -28,6 +28,13 @@ public class ElasticsearchConsts {
   public static final String INDEX_COMPOSITE = "index_composite";
 
   /**
+   * Stores StockHistory entities based on symbol.
+   * The types below this index are sh600588, etc.
+   * The history data is crawled from XQ.
+   */
+  public static final String INDEX_STOCKLIST = "stocklist";
+
+  /**
    * Stores all stock symbols
    */
   public static final String TYPE_SYMBOL = "symbol";
