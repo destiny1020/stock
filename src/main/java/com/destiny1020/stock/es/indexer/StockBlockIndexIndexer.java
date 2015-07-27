@@ -211,6 +211,10 @@ public class StockBlockIndexIndexer {
                   .startObject("fallCount")
                     .field("type", "integer")
                   .endObject()
+                  // risePercentage
+                  .startObject("risePercentage")
+                    .field("type", "double")
+                  .endObject()
                   // pioneer
                   .startObject("pioneer")
                     .field("type", "string")

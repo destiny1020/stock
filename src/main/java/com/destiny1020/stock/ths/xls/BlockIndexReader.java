@@ -2,6 +2,7 @@ package com.destiny1020.stock.ths.xls;
 
 import java.io.FileInputStream;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -171,6 +172,10 @@ public class BlockIndexReader {
         }
         idx++;
       }
+      // calculate risePercentage
+      si.setRisePercentage(new BigDecimal(si.getRiseCount()).divide(
+          new BigDecimal(si.getRiseCount() + si.getFallCount()), 3, RoundingMode.HALF_UP));
+
       indices.put(si.getName(), si);
     }
 

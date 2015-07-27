@@ -451,7 +451,6 @@ public class DailyReader {
       }
       // calculate the averagePrice
       if (sd.getDealNumber() != null && sd.getAverageSharePerDeal() != null) {
-        System.out.println(sd.getDealNumber() + " ----- " + sd.getAverageSharePerDeal());
         sd.setAveragePrice(sd.getAmountPerDeal().divide(sd.getAverageSharePerDeal(), 3,
             RoundingMode.HALF_UP));
       }

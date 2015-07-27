@@ -46,6 +46,11 @@ public class StockBlockIndex extends ESEntity {
   private int fallCount;
 
   /**
+   * 涨家数占比
+   */
+  private BigDecimal risePercentage;
+
+  /**
    * 领涨股
    */
   private String pioneer;
@@ -203,5 +208,13 @@ public class StockBlockIndex extends ESEntity {
 
   public void setCirculationMarketCapital(BigDecimal circulationMarketCapital) {
     this.circulationMarketCapital = circulationMarketCapital;
+  }
+
+  public BigDecimal getRisePercentage() {
+    return risePercentage;
+  }
+
+  public void setRisePercentage(BigDecimal risePercentage) {
+    this.risePercentage = risePercentage;
   }
 }
