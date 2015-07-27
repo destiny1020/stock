@@ -42,7 +42,7 @@ public class BlockIndexReader {
 
     //     load specific period data --- USE WHEN THERE ARE MULTIPLE FILES TO LOAD
     String formatTemplate = "2015-07-%s";
-    List<String> dates = Arrays.asList("22");
+    List<String> dates = Arrays.asList("27");
 
     dates.forEach(date -> {
       try {
@@ -84,6 +84,8 @@ public class BlockIndexReader {
       Iterator<Cell> cellIterator = row.cellIterator();
 
       StockBlockIndex si = new StockBlockIndex();
+      // recordDate
+      si.setRecordDate(targetDate);
       int idx = 0;
       while (cellIterator.hasNext()) {
         Cell cell = cellIterator.next();

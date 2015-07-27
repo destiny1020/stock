@@ -4,10 +4,13 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.concurrent.ExecutionException;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.elasticsearch.ElasticsearchException;
+import org.elasticsearch.action.admin.indices.create.CreateIndexResponse;
+import org.elasticsearch.action.admin.indices.exists.indices.IndicesExistsResponse;
 import org.elasticsearch.action.admin.indices.mapping.delete.DeleteMappingResponse;
 import org.elasticsearch.action.admin.indices.mapping.get.GetMappingsResponse;
 import org.elasticsearch.action.admin.indices.mapping.put.PutMappingResponse;
@@ -18,6 +21,7 @@ import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentFactory;
 
 import com.destiny1020.stock.es.ElasticsearchConsts;
+import com.destiny1020.stock.es.setting.CommonSettings;
 import com.destiny1020.stock.ths.model.StockBlockIndex;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -31,22 +35,61 @@ public class StockBlockIndexIndexer {
 
   private static final Logger LOGGER = LogManager.getLogger(StockBlockIndexIndexer.class);
 
+  /**
+   * Main entry for the block index indexer.
+   * 
+   * @param client
+   * @param date
+   * @param indices
+   * @throws ElasticsearchException
+   * @throws IOException
+   * @throws ExecutionException 
+   * @throws InterruptedException 
+   */
   public static void reindexStockBlockIndex(Client client, Date date,
-      ArrayList<StockBlockIndex> indices) throws ElasticsearchException, IOException {
+      ArrayList<StockBlockIndex> indices) throws ElasticsearchException, IOException,
+      InterruptedException, ExecutionException {
     // default to recreate type
     reindexStockBlockIndex(client, indices, date, true);
   }
 
   private static void reindexStockBlockIndex(Client client, ArrayList<StockBlockIndex> indices,
-      Date date, boolean recreate) throws ElasticsearchException, IOException {
+      Date date, boolean recreate) throws ElasticsearchException, IOException,
+      InterruptedException, ExecutionException {
     String dateStr = new SimpleDateFormat("yyyyMMdd").format(date);
     String typeName = String.format("%s-%s", ElasticsearchConsts.TYPE_DAILY, dateStr);
+
+    // create index and related settings if not existed
+    createIndexAndSettings(client);
 
     // create mappings for stock/block
     recreateMappings(client, typeName, recreate);
 
     // import stock block index records
     importBlockIndices(client, typeName, indices);
+  }
+
+  private static void createIndexAndSettings(Client client) throws InterruptedException,
+      ExecutionException, IOException {
+    IndicesExistsResponse indicesExistsResponse =
+        client.admin().indices().prepareExists(ElasticsearchConsts.INDEX_BLOCK).execute().get();
+
+    // only create when not exist
+    if (!indicesExistsResponse.isExists()) {
+      LOGGER.error(ElasticsearchConsts.INDEX_BLOCK + " is not existed.. Create one right now.");
+      CreateIndexResponse createIndexResponse =
+          client.admin().indices().prepareCreate(ElasticsearchConsts.INDEX_BLOCK)
+              .setSettings(getIndexBlockSettings()).execute().get();
+      if (createIndexResponse.isAcknowledged()) {
+        LOGGER.info("INDEX_BLOCK has been updated with filter and analyzer !");
+      } else {
+        LOGGER.error("INDEX_BLOCK Stock updating failed !");
+      }
+    }
+  }
+
+  private static String getIndexBlockSettings() throws IOException {
+    return CommonSettings.getSymbolAnalyzerSettings();
   }
 
   private static void importBlockIndices(Client client, String typeName,
@@ -126,6 +169,10 @@ public class StockBlockIndexIndexer {
                   .field("enabled", "true")
                 .endObject()
                 .startObject("properties")
+                  // recordDate
+                  .startObject("recordDate")
+                    .field("type", "date")
+                  .endObject()
                   // name
                   .startObject("name")
                     .field("type", "string")

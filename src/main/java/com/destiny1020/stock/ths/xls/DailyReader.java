@@ -58,12 +58,11 @@ public class DailyReader {
 
     //     load specific period data --- USE WHEN THERE ARE MULTIPLE FILES TO LOAD
     String formatTemplate = "2015-07-%s";
-    List<String> dates = Arrays.asList("23");
+    List<String> dates = Arrays.asList("27");
 
-    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
     dates.forEach(date -> {
       try {
-        Date parsedDate = sdf.parse(String.format(formatTemplate, date));
+        Date parsedDate = THSReaderUtils.SDF.parse(String.format(formatTemplate, date));
         load(parsedDate);
       } catch (Exception e) {
         e.printStackTrace();
@@ -96,6 +95,7 @@ public class DailyReader {
       Row row = rowIterator.next();
       Iterator<Cell> cellIterator = row.cellIterator();
       StockDaily sd = new StockDaily();
+      sd.setRecordDate(targetDate);
       int idx = 0;
       while (cellIterator.hasNext()) {
         Cell cell = cellIterator.next();

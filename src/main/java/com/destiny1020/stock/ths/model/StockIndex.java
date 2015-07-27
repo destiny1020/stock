@@ -8,7 +8,7 @@ import java.math.BigDecimal;
  * @author Administrator
  *
  */
-public class StockIndex {
+public class StockIndex extends ESEntity {
 
   /**
    * 代码

@@ -36,7 +36,7 @@ public class StockIndexIndexer {
   private static final Logger LOGGER = LogManager.getLogger(StockIndexIndexer.class);
 
   /**
-   * Main entry for the indexer.
+   * Main entry for the composite index indexer.
    * 
    * @param client
    * @param date
@@ -80,9 +80,9 @@ public class StockIndexIndexer {
           client.admin().indices().prepareCreate(ElasticsearchConsts.INDEX_COMPOSITE)
               .setSettings(getIndexCompositeSettings()).execute().get();
       if (createIndexResponse.isAcknowledged()) {
-        LOGGER.info("INDEX Stock has been updated with filter and analyzer !");
+        LOGGER.info("INDEX_COMPOSITE has been updated with filter and analyzer !");
       } else {
-        LOGGER.error("INDEX Stock updating failed !");
+        LOGGER.error("INDEX_COMPOSITE updating failed !");
       }
     }
   }
@@ -169,6 +169,10 @@ public class StockIndexIndexer {
                   .field("enabled", "true")
                 .endObject()
                 .startObject("properties")
+                  // recordDate
+                  .startObject("recordDate")
+                    .field("type", "date")
+                  .endObject()
                   // symbol
                   .startObject("symbol")
                     .field("type", "string")

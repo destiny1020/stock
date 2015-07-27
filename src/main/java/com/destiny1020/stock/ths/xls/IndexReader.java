@@ -84,6 +84,7 @@ public class IndexReader {
       Iterator<Cell> cellIterator = row.cellIterator();
 
       StockIndex si = new StockIndex();
+      si.setRecordDate(targetDate);
       int idx = 0;
       while (cellIterator.hasNext()) {
         Cell cell = cellIterator.next();

@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
-public class StockDaily {
+public class StockDaily extends ESEntity {
 
   /**
    * 代码
