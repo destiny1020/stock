@@ -20,7 +20,7 @@ import org.elasticsearch.node.Node;
 import org.elasticsearch.node.NodeBuilder;
 
 import com.destiny1020.stock.es.indexer.StockIndexIndexer;
-import com.destiny1020.stock.ths.model.StockIndex;
+import com.destiny1020.stock.model.StockIndex;
 
 /**
  * Read daily indices provided by THS.

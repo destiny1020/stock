@@ -20,7 +20,7 @@ import org.elasticsearch.common.xcontent.XContentFactory;
 
 import com.destiny1020.stock.es.ElasticsearchConsts;
 import com.destiny1020.stock.es.setting.CommonSettings;
-import com.destiny1020.stock.ths.model.StockSymbol;
+import com.destiny1020.stock.model.StockSymbol;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class StockSymbolIndexer {

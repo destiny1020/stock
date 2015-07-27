@@ -17,7 +17,7 @@ import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentFactory;
 
 import com.destiny1020.stock.es.ElasticsearchConsts;
-import com.destiny1020.stock.ths.model.StockDaily;
+import com.destiny1020.stock.model.StockDaily;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class StockDailyIndexer {

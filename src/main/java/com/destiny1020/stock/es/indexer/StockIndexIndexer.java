@@ -22,7 +22,7 @@ import org.elasticsearch.common.xcontent.XContentFactory;
 
 import com.destiny1020.stock.es.ElasticsearchConsts;
 import com.destiny1020.stock.es.setting.CommonSettings;
-import com.destiny1020.stock.ths.model.StockIndex;
+import com.destiny1020.stock.model.StockIndex;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**

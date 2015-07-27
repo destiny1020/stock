@@ -1,4 +1,4 @@
-package com.destiny1020.stock.ths.model;
+package com.destiny1020.stock.model;
 
 import java.util.Date;
 

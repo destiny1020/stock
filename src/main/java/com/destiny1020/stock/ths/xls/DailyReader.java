@@ -24,7 +24,7 @@ import org.elasticsearch.node.Node;
 import org.elasticsearch.node.NodeBuilder;
 
 import com.destiny1020.stock.es.indexer.StockDailyIndexer;
-import com.destiny1020.stock.ths.model.StockDaily;
+import com.destiny1020.stock.model.StockDaily;
 import com.destiny1020.stock.xueqiu.crawler.StockCrawler;
 
 /**

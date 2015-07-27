@@ -3,7 +3,6 @@ package com.destiny1020.stock.xueqiu.crawler;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
@@ -13,16 +12,15 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.CookieStore;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.cookie.BasicClientCookie;
 
 import com.destiny1020.stock.common.Market;
 import com.destiny1020.stock.xueqiu.model.StockFollowersInfo;
+import com.destiny1020.stock.xueqiu.model.StockHistoryWrapper;
 import com.destiny1020.stock.xueqiu.model.StockInfoWrapper;
+import com.destiny1020.stock.xueqiu.model.StockPeriod;
 import com.destiny1020.stock.xueqiu.model.StockQuoteInfo;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -36,42 +34,50 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  */
 public class StockCrawler {
 
-  private static final CookieStore DEFAULT_COOKIE_STORE;
-
-  static {
-    DEFAULT_COOKIE_STORE = new BasicCookieStore();
-    BasicClientCookie cookie = new BasicClientCookie("u", "9944872366");
-    cookie.setDomain("xueqiu.com");
-    DEFAULT_COOKIE_STORE.addCookie(cookie);
-
-    cookie = new BasicClientCookie("xq_a_token", "dd3c531416c4f9efd35f3898e33e9f6f572e3757");
-    cookie.setDomain("xueqiu.com");
-    DEFAULT_COOKIE_STORE.addCookie(cookie);
-
-    cookie = new BasicClientCookie("xq_is_login", "1");
-    cookie.setDomain("xueqiu.com");
-    DEFAULT_COOKIE_STORE.addCookie(cookie);
-
-    cookie = new BasicClientCookie("xq_r_token", "fbba932b8b038bc1c36a358e6d2b414c6fa5b9b6");
-    cookie.setDomain("xueqiu.com");
-    DEFAULT_COOKIE_STORE.addCookie(cookie);
-
-    cookie =
-        new BasicClientCookie("xq_token_expire",
-            "Mon%20Aug%2010%202015%2019%3A11%3A47%20GMT%2B0800%20(CST)");
-    cookie.setDomain("xueqiu.com");
-    DEFAULT_COOKIE_STORE.addCookie(cookie);
-
-    cookie = new BasicClientCookie("xqat", "dd3c531416c4f9efd35f3898e33e9f6f572e3757");
-    cookie.setDomain("xueqiu.com");
-    DEFAULT_COOKIE_STORE.addCookie(cookie);
-  }
-
   private static final String API_FOLLOWS_COUNT =
       "http://xueqiu.com/recommend/pofriends.json?type=1&code=%s&start=0&count=0";
   private static final String API_QUOTE = "http://xueqiu.com/v4/stock/quote.json?code=%s";
-  private static final String API_HISTORY = "";
+  // Sample: http://xueqiu.com/stock/forchartk/stocklist.json?symbol=SH600886&period=1week&type=before&begin=1391212800000&end=1393632000000
+  // 1: symbol, 2: 1day/1week/1month, 3: start millis, 4: end millis
+  private static final String API_HISTORY =
+      "http://xueqiu.com/stock/forchartk/stocklist.json?symbol=%s&period=%s&type=before";
 
+  public static void main(String[] args) {
+    // System.out.println(getFollowersInfo(Market.SH, "600886"));
+    //    System.out.println(getQuoteInfo(Arrays.asList(Pair.of(Market.SH, "600886"),
+    //        Pair.of(Market.SZ, "000656"))));
+
+    System.out.println(getHistoryWrapper("SH600886"));
+  }
+
+  /**
+   * Get history K-lines by symbol.
+   * Use sensible defaults:
+   * 
+   *     period = 1day
+   *     begin = undefined
+   *     end = undefined
+   * 
+   * @param symbol
+   * @return
+   */
+  public static StockHistoryWrapper getHistoryWrapper(String symbol) {
+    String url = String.format(API_HISTORY, symbol.toUpperCase(), StockPeriod.ONE_DAY.getOption());
+    String result = getJsonResponse(url);
+
+    if (result != null) {
+      return getStockInfoCore(result, StockHistoryWrapper.class);
+    }
+
+    return null;
+  }
+
+  /**
+   * Get Followers Count.
+   * 
+   * @param symbol
+   * @return
+   */
   public static StockFollowersInfo getFollowersInfo(String symbol) {
     if (StringUtils.isEmpty(symbol)) {
       return null;
@@ -128,15 +134,9 @@ public class StockCrawler {
     return null;
   }
 
-  public static void main(String[] args) {
-    // System.out.println(getFollowersInfo(Market.SH, "600886"));
-    System.out.println(getQuoteInfo(Arrays.asList(Pair.of(Market.SH, "600886"),
-        Pair.of(Market.SZ, "000656"))));
-  }
-
   private static <T> T getStockInfoCore(String jsonString, Class<T> prototype) {
-
     ObjectMapper objectMapper = new ObjectMapper();
+    objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     try {
       return (T) objectMapper.readValue(jsonString, prototype);
     } catch (IOException e) {
@@ -171,7 +171,8 @@ public class StockCrawler {
 
   private static String getJsonResponse(String url) {
     HttpClient client =
-        HttpClientBuilder.create().setDefaultCookieStore(DEFAULT_COOKIE_STORE).build();
+        HttpClientBuilder.create().setDefaultCookieStore(StockCookieStore.DEFAULT_COOKIE_STORE)
+            .build();
     HttpGet request = new HttpGet(url);
 
     // add request header

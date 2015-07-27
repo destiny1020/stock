@@ -17,7 +17,7 @@ import org.apache.poi.ss.usermodel.Row;
 import org.junit.Test;
 
 import com.destiny1020.stock.es.indexer.StockSymbolIndexer;
-import com.destiny1020.stock.ths.model.StockSymbol;
+import com.destiny1020.stock.model.StockSymbol;
 
 public class StockSymbolIndexerTest extends ESTestBase {
 

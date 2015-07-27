@@ -21,7 +21,7 @@ import org.elasticsearch.node.Node;
 import org.elasticsearch.node.NodeBuilder;
 
 import com.destiny1020.stock.es.indexer.StockBlockIndexIndexer;
-import com.destiny1020.stock.ths.model.StockBlockIndex;
+import com.destiny1020.stock.model.StockBlockIndex;
 
 /**
  * Read daily block indices provided by THS.

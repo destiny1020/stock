@@ -1,8 +1,10 @@
-package com.destiny1020.stock.xueqiu.model;
+package com.destiny1020.stock.model;
 
 import java.math.BigDecimal;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 
-import com.destiny1020.stock.ths.model.ESEntity;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 
 /**
  * Records under the stocklist/symbol in ES.
@@ -12,6 +14,11 @@ import com.destiny1020.stock.ths.model.ESEntity;
  *
  */
 public class StockHistory extends ESEntity {
+
+  /**
+   * 序列号: 表示当前周期下第sequence根K线
+   */
+  private int sequence;
 
   /**
    * 分析周期
@@ -103,6 +110,16 @@ public class StockHistory extends ESEntity {
    * MACD (12, 26, 9)
    */
   private BigDecimal macd;
+
+  /**
+   * Time
+   */
+  private String time;
+
+  @Override
+  public String toString() {
+    return ToStringBuilder.reflectionToString(this);
+  }
 
   public int getPeriod() {
     return period;
@@ -246,6 +263,25 @@ public class StockHistory extends ESEntity {
 
   public void setName(String name) {
     this.name = name;
+  }
+
+  public int getSequence() {
+    return sequence;
+  }
+
+  public void setSequence(int sequence) {
+    this.sequence = sequence;
+  }
+
+  public String getTime() {
+    return time;
+  }
+
+  public void setTime(String time) {
+    this.time = time;
+
+    // convert it to Date object --- Fri Feb 07 00:00:00 +0800 2014
+
   }
 
 }
