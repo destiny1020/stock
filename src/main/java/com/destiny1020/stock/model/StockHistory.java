@@ -29,7 +29,7 @@ public class StockHistory extends ESEntity {
    * 分析周期
    * 1: 日线 (period=1day)   2: 周线(period=1week)   3: 月线(period=1month)
    */
-  private int period;
+  private String period;
 
   /**
    * 代码
@@ -126,11 +126,11 @@ public class StockHistory extends ESEntity {
     return ToStringBuilder.reflectionToString(this);
   }
 
-  public int getPeriod() {
+  public String getPeriod() {
     return period;
   }
 
-  public void setPeriod(int period) {
+  public void setPeriod(String period) {
     this.period = period;
   }
 

@@ -2,17 +2,32 @@ package com.destiny1020.stock.es.indexer;
 
 import java.io.IOException;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.IntStream;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentFactory;
+import org.elasticsearch.index.query.FilterBuilders;
+import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.search.sort.SortBuilder;
+import org.elasticsearch.search.sort.SortBuilders;
+import org.elasticsearch.search.sort.SortOrder;
 
 import com.destiny1020.stock.es.ElasticsearchConsts;
 import com.destiny1020.stock.es.ElasticsearchUtils;
 import com.destiny1020.stock.es.setting.CommonSettings;
+import com.destiny1020.stock.model.StockHistory;
+import com.destiny1020.stock.xueqiu.crawler.StockCrawler;
+import com.destiny1020.stock.xueqiu.model.StockHistoryWrapper;
+import com.destiny1020.stock.xueqiu.model.StockPeriod;
 
 /**
  * To index the stock history for various periods(daily, weekly and monthly).
@@ -26,17 +41,118 @@ public class StockHistoryIndexer {
 
   private static final Logger LOGGER = LogManager.getLogger(StockHistoryIndexer.class);
 
+  private static final String FIELD_TIMESTAMP = "time";
+  private static final Date DEFAULT_START = new Date(0);
 
   public static void indexStockHistory(Client client, Date date, String symbol)
       throws InterruptedException, ExecutionException, IOException {
+    symbol = symbol.toLowerCase();
+
     // create index and related settings if not existed
     createIndexAndSettings(client);
 
     // create mappings for INDEX_STOCKLIST/(symbol)
-    recreateMappings(client, symbol);
+    boolean isCreated = recreateMappings(client, symbol);
+
+    // need to get the latest updated dates for 3 periods if mapping already exists.
+    Map<StockPeriod, Date> latestRecords = null;
+    if (!isCreated) {
+      latestRecords = getLatestRecords(client, symbol);
+    } else {
+      latestRecords = new HashMap<>(3);
+      for (StockPeriod period : StockPeriod.values()) {
+        latestRecords.put(period, DEFAULT_START);
+      }
+    }
+
+    // crawl XQ data for history
+    Map<StockPeriod, List<StockHistory>> crawlHistoryData =
+        crawlHistoryData(date, latestRecords, symbol);
+
+    // put the data into index
+    importIntoIndex(crawlHistoryData);
   }
 
-  private static void recreateMappings(Client client, String symbol) throws IOException {
+  private static void importIntoIndex(Map<StockPeriod, List<StockHistory>> crawlHistoryData) {
+    crawlHistoryData.forEach((period, historyList) -> {
+      System.out.println(period + " --- " + historyList);
+    });
+  }
+
+  private static Map<StockPeriod, Date> getLatestRecords(Client client, String symbol)
+      throws InterruptedException, ExecutionException {
+    Map<StockPeriod, Date> latestRecords = new HashMap<>(3);
+
+    // send requests to ES to fetch latest dates for each period
+    for (StockPeriod period : StockPeriod.values()) {
+      Date date = getLatestRecord(client, symbol, period);
+      latestRecords.put(period, date);
+    }
+
+    return latestRecords;
+  }
+
+  private static Date getLatestRecord(Client client, String symbol, StockPeriod period)
+      throws InterruptedException, ExecutionException {
+    // assemble query object
+    QueryBuilder query =
+        QueryBuilders.filteredQuery(
+            QueryBuilders.matchAllQuery(),
+            FilterBuilders.boolFilter().must(
+                FilterBuilders.termFilter("symbol.raw", symbol.toUpperCase()),
+                FilterBuilders.termFilter("period", period.getOption())));
+
+    // asssemble sort object
+    SortBuilder order = SortBuilders.fieldSort(FIELD_TIMESTAMP).order(SortOrder.DESC);
+
+    SearchResponse searchResponse =
+        client.prepareSearch(ElasticsearchConsts.INDEX_STOCKLIST).setQuery(query).addSort(order)
+            .setSize(1).execute().get();
+
+    if (searchResponse.getHits().getTotalHits() > 0) {
+      String time =
+          (String) searchResponse.getHits().getHits()[0].field(FIELD_TIMESTAMP).getValue();
+      return new Date(Long.valueOf(time));
+    } else {
+      return DEFAULT_START;
+    }
+  }
+
+  private static Map<StockPeriod, List<StockHistory>> crawlHistoryData(Date end,
+      Map<StockPeriod, Date> latestRecords, String symbol) {
+    final Map<StockPeriod, List<StockHistory>> historyData = new HashMap<>(3);
+
+    latestRecords.forEach((period, latestDate) -> {
+      StockHistoryWrapper historyWrapper =
+          StockCrawler.getHistoryWrapper(symbol, period, latestDate, end);
+
+      if (historyWrapper.isSuccess()) {
+        List<StockHistory> chartlist = historyWrapper.getChartlist();
+        historyData.put(period, chartlist);
+
+        IntStream.range(0, chartlist.size()).forEach(idx -> {
+          StockHistory history = chartlist.get(idx);
+
+          // set additional fields on history entities
+            history.setSequence(idx + 1);
+            history.setPeriod(period.getOption());
+            history.setSymbol(symbol);
+
+            // TODO: set name as the same time
+            //            history.setName(name);
+
+            history.setRecordDate(end);
+          });
+      } else {
+        throw new RuntimeException(String.format("Crawling history for %s failed at period %s",
+            symbol, period.getOption()));
+      }
+    });
+
+    return historyData;
+  }
+
+  private static boolean recreateMappings(Client client, String symbol) throws IOException {
     String index = ElasticsearchConsts.INDEX_STOCKLIST;
     String type = symbol;
 
@@ -45,8 +161,15 @@ public class StockHistoryIndexer {
       LOGGER.info(String.format("Create mapping for %s/%s   .", index, type));
       if (ElasticsearchUtils.putTypeMapping(client, index, type, getTypeMapping(type))) {
         LOGGER.info(String.format("Create mapping for %s/%s is successful !", index, type));
+        return true;
+      } else {
+        String failedMsg = String.format("Create mapping for %s/%s has failed !", index, type);
+        LOGGER.info(failedMsg);
+        throw new RuntimeException(failedMsg);
       }
     }
+
+    return false;
   }
 
   private static XContentBuilder getTypeMapping(String typeName) throws IOException {
@@ -68,6 +191,11 @@ public class StockHistoryIndexer {
                   // recordDate
                   .startObject("recordDate")
                     .field("type", "date")
+                  .endObject()
+                  // period
+                  .startObject("period")
+                    .field("type", "string")
+                    .field("index", "not_analyzed")
                   .endObject()
                   // symbol
                   .startObject("symbol")

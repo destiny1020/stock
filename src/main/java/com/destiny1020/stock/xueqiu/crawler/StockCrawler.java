@@ -3,6 +3,7 @@ package com.destiny1020.stock.xueqiu.crawler;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
@@ -15,6 +16,8 @@ import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import com.destiny1020.stock.common.Market;
 import com.destiny1020.stock.xueqiu.model.StockFollowersInfo;
@@ -34,9 +37,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  */
 public class StockCrawler {
 
+  private static final Logger LOGGER = LogManager.getLogger(StockCrawler.class);
+
   private static final String API_FOLLOWS_COUNT =
       "http://xueqiu.com/recommend/pofriends.json?type=1&code=%s&start=0&count=0";
+
   private static final String API_QUOTE = "http://xueqiu.com/v4/stock/quote.json?code=%s";
+
   // Sample: http://xueqiu.com/stock/forchartk/stocklist.json?symbol=SH600886&period=1week&type=before&begin=1391212800000&end=1393632000000
   // 1: symbol, 2: 1day/1week/1month, 3: start millis, 4: end millis
   private static final String API_HISTORY =
@@ -63,6 +70,38 @@ public class StockCrawler {
    */
   public static StockHistoryWrapper getHistoryWrapper(String symbol) {
     String url = String.format(API_HISTORY, symbol.toUpperCase(), StockPeriod.ONE_DAY.getOption());
+    String result = getJsonResponse(url);
+
+    if (result != null) {
+      return getStockInfoCore(result, StockHistoryWrapper.class);
+    }
+
+    return null;
+  }
+
+  /**
+   * Get history K-lines by symbol.
+   * 
+   * @param symbol
+   * @param period
+   * @param start
+   * @param end
+   * @return
+   */
+  public static StockHistoryWrapper getHistoryWrapper(String symbol, StockPeriod period,
+      Date start, Date end) {
+    String url = String.format(API_HISTORY, symbol.toUpperCase(), period.getOption());
+
+    // append start/end date if necessary
+    if (start != null) {
+      url = url + "&begin=" + (start.getTime() + 1);
+    }
+    if (end != null) {
+      url = url + "&end=" + end.getTime();
+    }
+
+    LOGGER.info(String.format("Get stock history information for %s at URL: %s", symbol, url));
+
     String result = getJsonResponse(url);
 
     if (result != null) {
