@@ -3,6 +3,8 @@ package com.destiny1020.stock.model;
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
@@ -14,6 +16,9 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
  *
  */
 public class StockHistory extends ESEntity {
+
+  private static final SimpleDateFormat SDF = new SimpleDateFormat("EEE MMMMM dd HH:mm:ss Z yyyy",
+      Locale.ENGLISH);
 
   /**
    * 序列号: 表示当前周期下第sequence根K线
@@ -114,7 +119,7 @@ public class StockHistory extends ESEntity {
   /**
    * Time
    */
-  private String time;
+  private Date time;
 
   @Override
   public String toString() {
@@ -273,15 +278,12 @@ public class StockHistory extends ESEntity {
     this.sequence = sequence;
   }
 
-  public String getTime() {
+  public Date getTime() {
     return time;
   }
 
-  public void setTime(String time) {
-    this.time = time;
-
-    // convert it to Date object --- Fri Feb 07 00:00:00 +0800 2014
-
+  public void setTime(String time) throws ParseException {
+    this.time = SDF.parse(time);
   }
 
 }
