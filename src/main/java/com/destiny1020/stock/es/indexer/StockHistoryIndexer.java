@@ -6,6 +6,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
 
 import org.apache.logging.log4j.LogManager;
@@ -48,7 +50,43 @@ public class StockHistoryIndexer {
   private static final String FIELD_TIMESTAMP = "time";
   private static final Date DEFAULT_START = new Date(0);
 
-  public static void indexStockHistory(Client client, Date date, String symbol)
+  /**
+   * Index all available stock stored in ES instance.
+   * 
+   * @param client
+   * @param currentDate
+   */
+  public static void indexStockHistoryAll(Client client, Date currentDate) {
+    Map<String, String> symbolToNames = ElasticsearchCommons.getSymbolToNamesMap(client);
+
+    // index each stock in the map -- use 4 threads to do index
+    ForkJoinPool forkJoinPool = new ForkJoinPool(4);
+    forkJoinPool.submit(() -> symbolToNames.keySet().stream().parallel().forEach(symbol -> {
+      try {
+        indexStockHistory(client, currentDate, symbol);
+      } catch (Exception e) {
+        e.printStackTrace();
+        throw new RuntimeException("Index stock history failed for symbol: " + symbol);
+      }
+    }));
+  }
+
+  /**
+   * To record how many stocks has been updated with history.
+   */
+  private static final AtomicInteger AI = new AtomicInteger(1);
+
+  /**
+   * Index individual stock history into ES instance.
+   * 
+   * @param client
+   * @param currentDate
+   * @param symbol
+   * @throws InterruptedException
+   * @throws ExecutionException
+   * @throws IOException
+   */
+  public static void indexStockHistory(Client client, Date currentDate, String symbol)
       throws InterruptedException, ExecutionException, IOException {
     symbol = symbol.toLowerCase();
 
@@ -71,10 +109,12 @@ public class StockHistoryIndexer {
 
     // crawl XQ data for history
     Map<StockPeriod, List<StockHistory>> crawlHistoryData =
-        crawlHistoryData(client, date, latestRecords, symbol);
+        crawlHistoryData(client, currentDate, latestRecords, symbol);
 
     // put the data into index
     importIntoIndex(client, crawlHistoryData, symbol);
+
+    LOGGER.info(String.format("[Stocklist] Finished %d ---> %s", AI.getAndAdd(1), symbol));
   }
 
   private static void importIntoIndex(Client client,
@@ -139,9 +179,7 @@ public class StockHistoryIndexer {
             .setSize(1).execute().get();
 
     if (searchResponse.getHits().getTotalHits() > 0) {
-      String time =
-          (String) searchResponse.getHits().getHits()[0].field(FIELD_TIMESTAMP).getValue();
-      return new Date(Long.valueOf(time));
+      return new Date((Long) searchResponse.getHits().getHits()[0].getSource().get(FIELD_TIMESTAMP));
     } else {
       return DEFAULT_START;
     }
@@ -157,29 +195,33 @@ public class StockHistoryIndexer {
       StockHistoryWrapper historyWrapper =
           StockCrawler.getHistoryWrapper(symbol, period, latestDate, end);
 
-      if (historyWrapper.isSuccess()) {
-        List<StockHistory> chartlist = historyWrapper.getChartlist();
-        historyData.put(period, chartlist);
+      if (historyWrapper != null) {
+        if (historyWrapper.isSuccess()) {
+          List<StockHistory> chartlist = historyWrapper.getChartlist();
+          if (chartlist != null && chartlist.size() > 0) {
+            historyData.put(period, chartlist);
 
-        IntStream.range(0, chartlist.size()).forEach(idx -> {
-          StockHistory history = chartlist.get(idx);
+            IntStream.range(0, chartlist.size()).forEach(idx -> {
+              StockHistory history = chartlist.get(idx);
 
-          // @formatter:off
-          // set additional fields on history entities
-          history.setSequence(idx + 1);
-          history.setPeriod(period.getOption());
-          history.setSymbol(symbol.toUpperCase());
-          history.setName(symbolToNames.get(symbol.toUpperCase()));
-
-          history.setRecordDate(end);
-        });
-        // @formatter:on
-      } else {
-        throw new RuntimeException(String.format("Crawling history for %s failed at period %s",
-            symbol, period.getOption()));
+              // @formatter:off
+              // set additional fields on history entities
+              history.setSequence(idx + 1);
+              history.setPeriod(period.getOption());
+              history.setSymbol(symbol.toUpperCase());
+              history.setName(symbolToNames.get(symbol.toUpperCase()));
+              
+              history.setRecordDate(end);
+            });
+          }
+        } else {
+          throw new RuntimeException(String.format("Crawling history for %s failed at period %s",
+              symbol, period.getOption()));
+        }
       }
     });
 
+    // @formatter:on
     return historyData;
   }
 
