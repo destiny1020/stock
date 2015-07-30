@@ -10,6 +10,8 @@ import java.util.stream.IntStream;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.elasticsearch.action.bulk.BulkRequestBuilder;
+import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.common.xcontent.XContentBuilder;
@@ -28,6 +30,7 @@ import com.destiny1020.stock.model.StockHistory;
 import com.destiny1020.stock.xueqiu.crawler.StockCrawler;
 import com.destiny1020.stock.xueqiu.model.StockHistoryWrapper;
 import com.destiny1020.stock.xueqiu.model.StockPeriod;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * To index the stock history for various periods(daily, weekly and monthly).
@@ -70,13 +73,38 @@ public class StockHistoryIndexer {
         crawlHistoryData(date, latestRecords, symbol);
 
     // put the data into index
-    importIntoIndex(crawlHistoryData);
+    importIntoIndex(client, crawlHistoryData, symbol);
   }
 
-  private static void importIntoIndex(Map<StockPeriod, List<StockHistory>> crawlHistoryData) {
+  private static void importIntoIndex(Client client,
+      Map<StockPeriod, List<StockHistory>> crawlHistoryData, String symbol) {
     crawlHistoryData.forEach((period, historyList) -> {
-      System.out.println(period + " --- " + historyList);
+      BulkRequestBuilder bulkRequest = client.prepareBulk();
+
+      LOGGER.info("[Stocklist]Indexing history records: " + historyList.size());
+
+      ObjectMapper mapper = new ObjectMapper();
+
+      // @formatter:off
+      historyList.forEach(stock -> {
+        String json;
+        try {
+          json = mapper.writeValueAsString(stock);
+          bulkRequest.add(client.prepareIndex(ElasticsearchConsts.INDEX_STOCKLIST,
+              symbol.toLowerCase()).setSource(json));
+        } catch (Exception e) {
+          e.printStackTrace();
+          LOGGER.error(String.format("[Stocklist]Serializing %d:%s has some errors.",
+              stock.getSymbol(), stock.getName()));
+        }
+      });
+      // execute bulk indexing
+      BulkResponse bulkResponse = bulkRequest.execute().actionGet();
+      if (bulkResponse.hasFailures()) {
+        LOGGER.error("[Stocklist]Bulk indexing has failures: " + bulkResponse.buildFailureMessage());
+      }
     });
+    // @formatter:on
   }
 
   private static Map<StockPeriod, Date> getLatestRecords(Client client, String symbol)
@@ -178,9 +206,6 @@ public class StockHistoryIndexer {
             .startObject()
               .startObject(typeName)
                 .field("dynamic", "strict")
-                .startObject("_id")
-                  .field("path", "symbol")
-                .endObject()
                 .startObject("_timestamp")
                   .field("path", "time")
                 .endObject()
@@ -196,6 +221,10 @@ public class StockHistoryIndexer {
                   .startObject("period")
                     .field("type", "string")
                     .field("index", "not_analyzed")
+                  .endObject()
+                  // sequence
+                  .startObject("sequence")
+                    .field("type", "integer")
                   .endObject()
                   // symbol
                   .startObject("symbol")
