@@ -1,11 +1,16 @@
 package com.destiny1020.stock.es;
 
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 import org.elasticsearch.action.admin.indices.mapping.get.GetMappingsResponse;
 import org.elasticsearch.action.admin.indices.mapping.put.PutMappingResponse;
+import org.elasticsearch.action.bulk.BulkRequestBuilder;
+import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.common.xcontent.XContentBuilder;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Common functions for ES.
@@ -76,6 +81,41 @@ public class ElasticsearchUtils {
       throws InterruptedException, ExecutionException {
     return client.admin().indices().prepareCreate(index).setSettings(settings).execute().get()
         .isAcknowledged();
+  }
+
+  /**
+   * Bulk index a bunch of entities. The entity should implement IOwnEsIDEntity interface.
+   * 
+   * @param client
+   * @param index
+   * @param type
+   * @param entities
+   * @return
+   */
+  public static <T extends IEsIDEntity> boolean bulkIndexing(Client client, String index,
+      String type, List<T> entities) {
+    BulkRequestBuilder bulkRequest = client.prepareBulk();
+
+    ObjectMapper mapper = new ObjectMapper(); // create once, reuse
+    entities.forEach(entity -> {
+      String json;
+      try {
+        json = mapper.writeValueAsString(entity);
+        bulkRequest.add(client.prepareIndex(index, type, entity.getEsID()).setSource(json));
+      } catch (Exception e) {
+        e.printStackTrace();
+        throw new RuntimeException(String.format("Serializing ID:%d has some errors.",
+            entity.getEsID()));
+      }
+    });
+
+    // execute bulk indexing
+    BulkResponse bulkResponse = bulkRequest.execute().actionGet();
+    if (bulkResponse.hasFailures()) {
+      return false;
+    }
+
+    return true;
   }
 
 }

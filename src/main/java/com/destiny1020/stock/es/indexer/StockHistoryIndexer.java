@@ -23,6 +23,7 @@ import org.elasticsearch.search.sort.SortBuilder;
 import org.elasticsearch.search.sort.SortBuilders;
 import org.elasticsearch.search.sort.SortOrder;
 
+import com.destiny1020.stock.es.ElasticsearchCommons;
 import com.destiny1020.stock.es.ElasticsearchConsts;
 import com.destiny1020.stock.es.ElasticsearchUtils;
 import com.destiny1020.stock.es.setting.CommonSettings;
@@ -70,7 +71,7 @@ public class StockHistoryIndexer {
 
     // crawl XQ data for history
     Map<StockPeriod, List<StockHistory>> crawlHistoryData =
-        crawlHistoryData(date, latestRecords, symbol);
+        crawlHistoryData(client, date, latestRecords, symbol);
 
     // put the data into index
     importIntoIndex(client, crawlHistoryData, symbol);
@@ -146,9 +147,11 @@ public class StockHistoryIndexer {
     }
   }
 
-  private static Map<StockPeriod, List<StockHistory>> crawlHistoryData(Date end,
+  private static Map<StockPeriod, List<StockHistory>> crawlHistoryData(Client client, Date end,
       Map<StockPeriod, Date> latestRecords, String symbol) {
     final Map<StockPeriod, List<StockHistory>> historyData = new HashMap<>(3);
+
+    Map<String, String> symbolToNames = ElasticsearchCommons.getSymbolToNamesMap(client);
 
     latestRecords.forEach((period, latestDate) -> {
       StockHistoryWrapper historyWrapper =
@@ -161,16 +164,16 @@ public class StockHistoryIndexer {
         IntStream.range(0, chartlist.size()).forEach(idx -> {
           StockHistory history = chartlist.get(idx);
 
+          // @formatter:off
           // set additional fields on history entities
-            history.setSequence(idx + 1);
-            history.setPeriod(period.getOption());
-            history.setSymbol(symbol);
+          history.setSequence(idx + 1);
+          history.setPeriod(period.getOption());
+          history.setSymbol(symbol.toUpperCase());
+          history.setName(symbolToNames.get(symbol.toUpperCase()));
 
-            // TODO: set name as the same time
-            //            history.setName(name);
-
-            history.setRecordDate(end);
-          });
+          history.setRecordDate(end);
+        });
+        // @formatter:on
       } else {
         throw new RuntimeException(String.format("Crawling history for %s failed at period %s",
             symbol, period.getOption()));

@@ -12,16 +12,14 @@ import org.elasticsearch.action.admin.indices.mapping.get.GetMappingsResponse;
 import org.elasticsearch.action.admin.indices.mapping.put.PutMappingResponse;
 import org.elasticsearch.action.admin.indices.open.OpenIndexResponse;
 import org.elasticsearch.action.admin.indices.settings.put.UpdateSettingsResponse;
-import org.elasticsearch.action.bulk.BulkRequestBuilder;
-import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentFactory;
 
 import com.destiny1020.stock.es.ElasticsearchConsts;
+import com.destiny1020.stock.es.ElasticsearchUtils;
 import com.destiny1020.stock.es.setting.CommonSettings;
 import com.destiny1020.stock.model.StockSymbol;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class StockSymbolIndexer {
 
@@ -33,7 +31,8 @@ public class StockSymbolIndexer {
     recreateMappings(client);
 
     // import stock symbol records
-    importStocks(client, stocks);
+    boolean importResult = importStocks(client, stocks);
+    LOGGER.info("Importing symbols is successful: " + importResult);
   }
 
   public static void recreateMappings(Client client) throws IOException, InterruptedException,
@@ -117,97 +116,58 @@ public class StockSymbolIndexer {
     return CommonSettings.getSymbolAnalyzerSettings();
   }
 
-  //  {
-  //    "stock": {
-  //       "mappings": {
-  //          "symbol": {
-  //             "dynamic": "strict",
-  //             "_all": {
-  //                "enabled": true
-  //             },
-  //             "_id": {
-  //                "path": "symbol"
-  //             },
-  //             "properties": {
-  //                "name": {
-  //                   "type": "string",
-  //                   "analyzer": "ik",
-  //                   "fields": {
-  //                      "raw": {
-  //                         "type": "string",
-  //                         "index": "not_analyzed"
-  //                      },
-  //                      "standard": {
-  //                         "type": "string"
-  //                      }
-  //                   }
-  //                },
-  //                "symbol": {
-  //                   "type": "string",
-  //                   "fields": {
-  //                      "raw": {
-  //                         "type": "string",
-  //                         "index": "not_analyzed"
-  //                      }
-  //                   }
-  //                }
-  //             }
-  //          }
-  //       }
-  //    }
-  // }
   private static XContentBuilder getStockSymbolMappings() throws IOException {
-    XContentBuilder builder =
-        XContentFactory.jsonBuilder().startObject().startObject(ElasticsearchConsts.TYPE_SYMBOL)
-            .field("dynamic", "strict")
-            .startObject("_id")
-            .field("path", "symbol")
-            .endObject()
-            .startObject("_all")
-            .field("enabled", "true")
-            .endObject()
-            .startObject("properties")
-            // symbol
-            .startObject("symbol").field("type", "string")
-            .field("index_analyzer", "symbol_analyzer").field("search_analyzer", "standard")
-            .startObject("fields").startObject("raw").field("type", "string")
-            .field("index", "not_analyzed")
-            .endObject()
-            .endObject()
-            .endObject()
-            // name
-            .startObject("name").field("type", "string").field("analyzer", "ik")
-            .startObject("fields").startObject("raw").field("type", "string")
-            .field("index", "not_analyzed").endObject().startObject("standard")
-            .field("type", "string").endObject().endObject().endObject()
-            // block
-            .startObject("block").field("type", "string").field("index", "not_analyzed")
-            .endObject().endObject().endObject().endObject();
+    // @formatter:off
+    XContentBuilder builder = XContentFactory.jsonBuilder()
+            .startObject()
+              .startObject(ElasticsearchConsts.TYPE_SYMBOL)
+                .field("dynamic", "strict")
+                .startObject("_id")
+                  .field("path", "symbol")
+                .endObject()
+                .startObject("_all")
+                  .field("enabled", "true")
+                .endObject()
+                .startObject("properties")
+                  // symbol
+                  .startObject("symbol")
+                    .field("type", "string")
+                    .field("index_analyzer", "symbol_analyzer")
+                    .field("search_analyzer", "standard")
+                    .startObject("fields")
+                      .startObject("raw")
+                        .field("type", "string")
+                        .field("index", "not_analyzed")
+                      .endObject()
+                    .endObject()
+                  .endObject()
+                  // name
+                  .startObject("name")
+                    .field("type", "string")
+                    .field("index_analyzer", "symbol_analyzer")
+                    .field("search_analyzer", "standard")
+                    .startObject("fields")
+                      .startObject("raw")
+                        .field("type", "string")
+                        .field("index", "not_analyzed")
+                      .endObject()
+                    .endObject()
+                  .endObject()
+                  // block
+                  .startObject("block")
+                    .field("type", "string")
+                    .field("index", "not_analyzed")
+                  .endObject()
+                .endObject()
+              .endObject()
+            .endObject();
+    // @formatter:on
 
     return builder;
   }
 
-  private static void importStocks(Client client, List<StockSymbol> stocks) {
-    BulkRequestBuilder bulkRequest = client.prepareBulk();
-
-    ObjectMapper mapper = new ObjectMapper(); // create once, reuse
-    stocks.forEach(stock -> {
-      String json;
-      try {
-        json = mapper.writeValueAsString(stock);
-        bulkRequest.add(client.prepareIndex(ElasticsearchConsts.INDEX_STOCK,
-            ElasticsearchConsts.TYPE_SYMBOL, stock.getSymbol()).setSource(json));
-      } catch (Exception e) {
-        e.printStackTrace();
-        LOGGER.error(String.format("Serializing %d:%s has some errors.", stock.getSymbol(),
-            stock.getName()));
-      }
-    });
-
-    // execute bulk indexing
-    BulkResponse bulkResponse = bulkRequest.execute().actionGet();
-    if (bulkResponse.hasFailures()) {
-      LOGGER.error("Bulk indexing has failures: " + bulkResponse.buildFailureMessage());
-    }
+  private static boolean importStocks(Client client, List<StockSymbol> stocks) {
+    return ElasticsearchUtils.bulkIndexing(client, ElasticsearchConsts.INDEX_STOCK_CONSTANT,
+        ElasticsearchConsts.TYPE_SYMBOL, stocks);
   }
 }

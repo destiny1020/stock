@@ -1,6 +1,8 @@
 package com.destiny1020.stock.model;
 
-public class StockSymbol {
+import com.destiny1020.stock.es.IEsIDEntity;
+
+public class StockSymbol implements IEsIDEntity {
 
   /**
    * 代码
@@ -32,6 +34,11 @@ public class StockSymbol {
 
   public void setName(String name) {
     this.name = name;
+  }
+
+  @Override
+  public String getEsID() {
+    return symbol.toUpperCase();
   }
 
 }
