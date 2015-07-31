@@ -1,6 +1,9 @@
 package com.destiny1020.stock.ths.xls;
 
+import static com.destiny1020.stock.ths.xls.THSReaderUtils.FT_BLOCK_DAILY;
 import static com.destiny1020.stock.ths.xls.THSReaderUtils.NON_EXISTENCE;
+import static com.destiny1020.stock.ths.xls.THSReaderUtils.SDF;
+import static com.destiny1020.stock.ths.xls.THSReaderUtils.SELECTED_BLOCKS;
 import static com.destiny1020.stock.ths.xls.THSReaderUtils.extractNumber;
 
 import java.io.FileInputStream;
@@ -13,7 +16,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
 import org.apache.poi.hssf.usermodel.HSSFSheet;
@@ -25,7 +27,6 @@ import org.elasticsearch.client.Client;
 import com.destiny1020.stock.es.ElasticsearchUtils;
 import com.destiny1020.stock.es.indexer.StockBlockDailyIndexer;
 import com.destiny1020.stock.model.StockBlockDaily;
-import com.google.common.collect.Sets;
 
 /**
  * Read daily exported block details data from THS.
@@ -35,22 +36,13 @@ import com.google.common.collect.Sets;
  */
 public class StockBlockDailyReader {
 
-  /**
-   * Define blocks that need to be indexed.
-   */
-  private static final Set<String> NEEDED_BKS = Sets.newHashSet("DFJ", "GFJG", "JSJYY", "YJS",
-      "YLGG");
-
-  // file name patterns [Date]_BK_[BLOCK_ABBR].xls
-  private static final String FILE_PATH_PATTERN = "data/%s_BK_%s.xls";
-
   public static void main(String[] args) throws Exception {
-    Date parsedDate = THSReaderUtils.SDF.parse("2015-07-30");
+    Date parsedDate = SDF.parse("2015-07-30");
     load(ElasticsearchUtils.getClient(), parsedDate);
   }
 
   public static void load(Client client, Date targetDate) throws Exception {
-    for (String blockAbbr : NEEDED_BKS) {
+    for (String blockAbbr : SELECTED_BLOCKS) {
       loadCore(client, targetDate, blockAbbr);
     }
   }
@@ -59,8 +51,7 @@ public class StockBlockDailyReader {
       throws IOException, InterruptedException, ExecutionException {
     String dateStr = new SimpleDateFormat("yyyy-MM-dd").format(targetDate);
 
-    FileInputStream file =
-        new FileInputStream(String.format(FILE_PATH_PATTERN, dateStr, blockAbbr));
+    FileInputStream file = new FileInputStream(String.format(FT_BLOCK_DAILY, dateStr, blockAbbr));
 
     // Get the workbook instance for XLS file
     HSSFWorkbook workbook = new HSSFWorkbook(file);

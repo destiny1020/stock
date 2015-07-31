@@ -1,9 +1,12 @@
 package com.destiny1020.stock.ths.xls;
 
+import static com.destiny1020.stock.ths.xls.THSReaderUtils.FT_INDEX_BLOCK;
+import static com.destiny1020.stock.ths.xls.THSReaderUtils.NON_EXISTENCE;
+import static com.destiny1020.stock.ths.xls.THSReaderUtils.SDF;
+
 import java.io.FileInputStream;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -30,12 +33,6 @@ import com.destiny1020.stock.model.StockBlockIndex;
  */
 public class StockBlockReader {
 
-  private static final String NON_EXISTENCE = "--";
-
-  private static final String FILE_PATH_PATTERN = "D:/stock/THS/%s_THSZS.xls";
-
-  private static final SimpleDateFormat COMMON_SDF = new SimpleDateFormat("yyyy-MM-dd");
-
   public static void main(String[] args) {
     // load today's data
     // load(new Date());
@@ -54,13 +51,13 @@ public class StockBlockReader {
   }
 
   public static void load(Client client, String targetDate) throws Exception {
-    load(client, COMMON_SDF.parse(targetDate));
+    load(client, SDF.parse(targetDate));
   }
 
   public static void load(Client client, Date targetDate) throws Exception {
-    String dateStr = COMMON_SDF.format(targetDate);
+    String dateStr = SDF.format(targetDate);
 
-    FileInputStream file = new FileInputStream(String.format(FILE_PATH_PATTERN, dateStr));
+    FileInputStream file = new FileInputStream(String.format(FT_INDEX_BLOCK, dateStr));
 
     // Get the workbook instance for XLS file
     HSSFWorkbook workbook = new HSSFWorkbook(file);

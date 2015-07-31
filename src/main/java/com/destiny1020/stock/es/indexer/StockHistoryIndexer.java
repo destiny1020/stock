@@ -50,6 +50,8 @@ public class StockHistoryIndexer {
   private static final String FIELD_TIMESTAMP = "time";
   private static final Date DEFAULT_START = new Date(0);
 
+  private static final int NUM_THREADS = 4;
+
   /**
    * Index all available stock stored in ES instance.
    * 
@@ -59,8 +61,8 @@ public class StockHistoryIndexer {
   public static void indexStockHistoryAll(Client client, Date currentDate) {
     Map<String, String> symbolToNames = ElasticsearchCommons.getSymbolToNamesMap(client);
 
-    // index each stock in the map -- use 4 threads to do index
-    ForkJoinPool forkJoinPool = new ForkJoinPool(4);
+    // index each stock in the map -- use N threads to do index
+    ForkJoinPool forkJoinPool = new ForkJoinPool(NUM_THREADS);
     forkJoinPool.submit(() -> symbolToNames.keySet().stream().parallel().forEach(symbol -> {
       try {
         indexStockHistory(client, currentDate, symbol);

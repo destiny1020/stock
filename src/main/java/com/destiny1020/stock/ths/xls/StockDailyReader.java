@@ -1,5 +1,8 @@
 package com.destiny1020.stock.ths.xls;
 
+import static com.destiny1020.stock.ths.xls.THSReaderUtils.FT_DAILY;
+import static com.destiny1020.stock.ths.xls.THSReaderUtils.FT_DAILY_CAPITAL;
+import static com.destiny1020.stock.ths.xls.THSReaderUtils.FT_DAILY_POSITION;
 import static com.destiny1020.stock.ths.xls.THSReaderUtils.NON_EXISTENCE;
 import static com.destiny1020.stock.ths.xls.THSReaderUtils.extractNumber;
 
@@ -37,11 +40,6 @@ public class StockDailyReader {
 
   private static final String HAS_SIGNAL = "有";
 
-  // file name patterns
-  private static final String FILE_PATH_PATTERN = "D:/stock/THS/%s.xls";
-  private static final String FILE_PATH_PATTERN_ZJLX = "D:/stock/THS/%s_ZJLX.xls";
-  private static final String FILE_PATH_PATTERN_ZLZC = "D:/stock/THS/%s_ZLZC.xls";
-
   /**
    * Main Entry for loading data in THS exported data.
    * 
@@ -69,7 +67,7 @@ public class StockDailyReader {
   public static void load(Client client, Date targetDate) throws Exception {
     String dateStr = new SimpleDateFormat("yyyy-MM-dd").format(targetDate);
 
-    FileInputStream file = new FileInputStream(String.format(FILE_PATH_PATTERN, dateStr));
+    FileInputStream file = new FileInputStream(String.format(FT_DAILY, dateStr));
 
     // Get the workbook instance for XLS file
     HSSFWorkbook workbook = new HSSFWorkbook(file);
@@ -457,7 +455,7 @@ public class StockDailyReader {
     // Basic information completed
 
     // ZJLX started
-    file = new FileInputStream(new File(String.format(FILE_PATH_PATTERN_ZJLX, dateStr)));
+    file = new FileInputStream(new File(String.format(FT_DAILY_CAPITAL, dateStr)));
 
     // Get the workbook instance for XLS file
     workbook = new HSSFWorkbook(file);
@@ -599,7 +597,7 @@ public class StockDailyReader {
     }
 
     // ZLZC started
-    file = new FileInputStream(new File(String.format(FILE_PATH_PATTERN_ZLZC, dateStr)));
+    file = new FileInputStream(new File(String.format(FT_DAILY_POSITION, dateStr)));
 
     // Get the workbook instance for XLS file
     workbook = new HSSFWorkbook(file);
