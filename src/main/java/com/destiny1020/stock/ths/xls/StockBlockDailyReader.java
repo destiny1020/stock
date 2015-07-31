@@ -21,9 +21,8 @@ import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.elasticsearch.client.Client;
-import org.elasticsearch.node.Node;
-import org.elasticsearch.node.NodeBuilder;
 
+import com.destiny1020.stock.es.ElasticsearchUtils;
 import com.destiny1020.stock.es.indexer.StockBlockDailyIndexer;
 import com.destiny1020.stock.model.StockBlockDaily;
 import com.google.common.collect.Sets;
@@ -34,7 +33,7 @@ import com.google.common.collect.Sets;
  * @author destiny
  *
  */
-public class BlockDailyReader {
+public class StockBlockDailyReader {
 
   /**
    * Define blocks that need to be indexed.
@@ -47,19 +46,13 @@ public class BlockDailyReader {
 
   public static void main(String[] args) throws Exception {
     Date parsedDate = THSReaderUtils.SDF.parse("2015-07-30");
-    load(parsedDate);
+    load(ElasticsearchUtils.getClient(), parsedDate);
   }
 
-  public static void load(Date targetDate) throws Exception {
-    Node node = NodeBuilder.nodeBuilder().client(true).node();
-    Client client = node.client();
-
+  public static void load(Client client, Date targetDate) throws Exception {
     for (String blockAbbr : NEEDED_BKS) {
       loadCore(client, targetDate, blockAbbr);
     }
-
-    client.close();
-    node.close();
   }
 
   private static void loadCore(Client client, Date targetDate, String blockAbbr)

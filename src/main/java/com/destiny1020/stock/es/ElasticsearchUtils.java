@@ -11,8 +11,8 @@ import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.common.xcontent.XContentBuilder;
+import org.elasticsearch.node.NodeBuilder;
 
-import com.destiny1020.stock.es.indexer.StockBlockDailyIndexer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
@@ -24,6 +24,17 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class ElasticsearchUtils {
 
   private static final Logger LOGGER = LogManager.getLogger(ElasticsearchUtils.class);
+
+  private static final Client CLIENT = NodeBuilder.nodeBuilder().client(true).node().client();
+
+  /**
+   * Get an instance of ES client.
+   * 
+   * @return
+   */
+  public static Client getClient() {
+    return CLIENT;
+  }
 
   /**
    * Whether index exists in the ES instance.
