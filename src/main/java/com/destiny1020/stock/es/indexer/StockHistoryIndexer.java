@@ -367,6 +367,7 @@ public class StockHistoryIndexer {
     return builder;
   }
 
+  // TODO: to refactor to remove duplicated code
   private static void createIndexAndSettings(Client client) throws InterruptedException,
       ExecutionException, IOException {
     // only create when not exist

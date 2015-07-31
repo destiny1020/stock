@@ -3,6 +3,8 @@ package com.destiny1020.stock.es;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.elasticsearch.action.admin.indices.mapping.get.GetMappingsResponse;
 import org.elasticsearch.action.admin.indices.mapping.put.PutMappingResponse;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
@@ -10,6 +12,7 @@ import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 
+import com.destiny1020.stock.es.indexer.StockBlockDailyIndexer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
@@ -19,6 +22,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  *
  */
 public class ElasticsearchUtils {
+
+  private static final Logger LOGGER = LogManager.getLogger(ElasticsearchUtils.class);
 
   /**
    * Whether index exists in the ES instance.
@@ -112,6 +117,7 @@ public class ElasticsearchUtils {
     // execute bulk indexing
     BulkResponse bulkResponse = bulkRequest.execute().actionGet();
     if (bulkResponse.hasFailures()) {
+      LOGGER.error(bulkResponse.buildFailureMessage());
       return false;
     }
 

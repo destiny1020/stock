@@ -1,5 +1,8 @@
 package com.destiny1020.stock.ths.xls;
 
+import static com.destiny1020.stock.ths.xls.THSReaderUtils.NON_EXISTENCE;
+import static com.destiny1020.stock.ths.xls.THSReaderUtils.extractNumber;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.math.BigDecimal;
@@ -12,8 +15,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
@@ -35,11 +36,7 @@ import com.destiny1020.stock.xueqiu.crawler.StockCrawler;
  */
 public class DailyReader {
 
-  private static final String NON_EXISTENCE = "--";
-  private static final String NON_EXISTENCE_LONG = "----";
   private static final String HAS_SIGNAL = "有";
-
-  private static final Pattern NUMBER_PATTERN = Pattern.compile("-?\\d+", Pattern.DOTALL);
 
   // file name patterns
   private static final String FILE_PATH_PATTERN = "D:/stock/THS/%s.xls";
@@ -54,9 +51,9 @@ public class DailyReader {
    */
   public static void main(String[] args) throws Exception {
     // load today's data
-    //    load(new Date());
+    // load(new Date());
 
-    //     load specific period data --- USE WHEN THERE ARE MULTIPLE FILES TO LOAD
+    // load specific period data --- USE WHEN THERE ARE MULTIPLE FILES TO LOAD
     String formatTemplate = "2015-07-%s";
     List<String> dates = Arrays.asList("27");
 
@@ -740,14 +737,4 @@ public class DailyReader {
     node.close();
   }
 
-  private static BigDecimal extractNumber(String target) {
-    BigDecimal result = BigDecimal.ZERO;
-    if (target != null && !target.equals(NON_EXISTENCE_LONG)) {
-      final Matcher matcher = NUMBER_PATTERN.matcher(target);
-      while (matcher.find()) {
-        result = new BigDecimal(matcher.group());
-      }
-    }
-    return result;
-  }
 }

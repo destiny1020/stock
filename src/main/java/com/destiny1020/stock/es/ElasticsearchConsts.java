@@ -18,6 +18,8 @@ public class ElasticsearchConsts {
   /**
    * Stores StockBlockIndex entities based on date.
    * The types below this index are daily-20150723, etc.
+   * 
+   * Also contains the details of some blocks as sth like: index_block/dfj-20150723
    */
   public static final String INDEX_BLOCK = "index_block";
 
