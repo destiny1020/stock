@@ -89,7 +89,7 @@ public class StockBlockReader {
         String content = cell.toString();
         switch (idx) {
           case 0: // 板块名称
-            si.setName(content);
+            si.setName(content.replaceAll("\\s+", ""));
             break;
           case 1: // --
             break;
@@ -126,7 +126,7 @@ public class StockBlockReader {
             }
             break;
           case 9: // 领涨股
-            si.setPioneer(content);
+            si.setPioneer(content.replaceAll("\\s+", ""));
             break;
           case 10: // 5日涨幅
             if (!content.equals(NON_EXISTENCE)) {

@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.concurrent.ExecutionException;
 
 import org.elasticsearch.node.NodeBuilder;
+import org.joda.time.DateTime;
 import org.junit.Test;
 
 import com.destiny1020.stock.es.indexer.StockHistoryIndexer;
@@ -13,7 +14,8 @@ public class StockHistoryIndexerTest extends ESTestBase {
 
   @Test
   public void testOneIndexHistory() throws InterruptedException, ExecutionException, IOException {
-    StockHistoryIndexer.indexStockHistory(client, new Date(), "SH600588");
+    DateTime time = DateTime.parse("2015-08-03");
+    StockHistoryIndexer.indexStockHistory(client, new Date(time.getMillis()), "SZ000002");
   }
 
   @Test

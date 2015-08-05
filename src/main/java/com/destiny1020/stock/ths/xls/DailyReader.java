@@ -19,7 +19,7 @@ public class DailyReader {
 
   // Test aim
   public static void main(String[] args) throws Exception {
-    read();
+    read(THSReaderUtils.SDF.parse("2015-07-31"));
   }
 
   /**
@@ -59,6 +59,9 @@ public class DailyReader {
 
     // step 5: stocklist/symbol
     StockHistoryIndexer.indexStockHistoryAll(client, date);
+
+    // close the ES client
+    client.close();
   }
 
 }

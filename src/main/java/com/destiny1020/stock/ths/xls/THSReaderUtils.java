@@ -36,9 +36,9 @@ public class THSReaderUtils {
   // File Path Patterns --- maybe various on different environment
   // TODO: make properties file for the environment dependent variables
   // ON WIN7
-  // public static final String FT_PREFIX = "D:/stock/THS/";
+  public static final String FT_PREFIX = "D:/stock/THS/";
   // ON UBUNTU DEV
-  public static final String FT_PREFIX = "data/";
+  //  public static final String FT_PREFIX = "data/";
 
   public static final String FT_DAILY = FT_PREFIX + "%s.xls";
   public static final String FT_DAILY_CAPITAL = FT_PREFIX + "%s_ZJLX.xls";

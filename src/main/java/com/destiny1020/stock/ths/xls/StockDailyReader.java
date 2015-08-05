@@ -99,7 +99,7 @@ public class StockDailyReader {
             sd.setSymbol(content);
             break;
           case 1: // 名称
-            sd.setName(content);
+            sd.setName(content.replaceAll("\\s+", ""));
             break;
           case 2: // 融资融券
             boolean canFinancing = false;

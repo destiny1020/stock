@@ -25,15 +25,13 @@ public class ElasticsearchUtils {
 
   private static final Logger LOGGER = LogManager.getLogger(ElasticsearchUtils.class);
 
-  private static final Client CLIENT = NodeBuilder.nodeBuilder().client(true).node().client();
-
   /**
    * Get an instance of ES client.
    * 
    * @return
    */
   public static Client getClient() {
-    return CLIENT;
+    return NodeBuilder.nodeBuilder().client(true).node().client();
   }
 
   /**
