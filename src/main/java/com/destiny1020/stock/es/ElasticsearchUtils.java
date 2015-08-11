@@ -11,6 +11,7 @@ import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.common.xcontent.XContentBuilder;
+import org.elasticsearch.node.Node;
 import org.elasticsearch.node.NodeBuilder;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -26,12 +27,39 @@ public class ElasticsearchUtils {
   private static final Logger LOGGER = LogManager.getLogger(ElasticsearchUtils.class);
 
   /**
-   * Get an instance of ES client.
+   * Get an instance of ES node.
+   * 
+   * @return
+   */
+  public static Node getNode() {
+    return NodeBuilder.nodeBuilder().client(true).node();
+  }
+
+  /**
+   * Get an instance of ES client. Ignore the node creation process.
    * 
    * @return
    */
   public static Client getClient() {
     return NodeBuilder.nodeBuilder().client(true).node().client();
+  }
+
+  /**
+   * To remove the index in the ES instance.
+   * 
+   * @param client
+   * @param index
+   * @return
+   * @throws InterruptedException
+   * @throws ExecutionException
+   */
+  public static boolean deleteIndex(Client client, String index) throws InterruptedException,
+      ExecutionException {
+    if (isIndexExisting(client, index)) {
+      return client.admin().indices().prepareDelete(index).execute().get().isAcknowledged();
+    }
+
+    return false;
   }
 
   /**

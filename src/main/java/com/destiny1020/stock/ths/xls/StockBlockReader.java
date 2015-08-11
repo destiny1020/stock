@@ -4,9 +4,13 @@ import static com.destiny1020.stock.ths.xls.THSReaderUtils.FT_INDEX_BLOCK;
 import static com.destiny1020.stock.ths.xls.THSReaderUtils.NON_EXISTENCE;
 import static com.destiny1020.stock.ths.xls.THSReaderUtils.SDF;
 
+import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -14,6 +18,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
@@ -50,15 +55,24 @@ public class StockBlockReader {
     });
   }
 
+  public static void load(Client client, File sourceFile) throws FileNotFoundException,
+      IOException, InterruptedException, ExecutionException, ParseException {
+    // extract the date from the source file name
+    String dateStr = sourceFile.getName().substring(0, sourceFile.getName().indexOf('_'));
+    loadCore(client, SDF.parse(dateStr), new FileInputStream(sourceFile));
+  }
+
   public static void load(Client client, String targetDate) throws Exception {
     load(client, SDF.parse(targetDate));
   }
 
   public static void load(Client client, Date targetDate) throws Exception {
-    String dateStr = SDF.format(targetDate);
+    loadCore(client, targetDate,
+        new FileInputStream(String.format(FT_INDEX_BLOCK, SDF.format(targetDate))));
+  }
 
-    FileInputStream file = new FileInputStream(String.format(FT_INDEX_BLOCK, dateStr));
-
+  private static void loadCore(Client client, Date targetDate, FileInputStream file)
+      throws FileNotFoundException, IOException, InterruptedException, ExecutionException {
     // Get the workbook instance for XLS file
     HSSFWorkbook workbook = new HSSFWorkbook(file);
 

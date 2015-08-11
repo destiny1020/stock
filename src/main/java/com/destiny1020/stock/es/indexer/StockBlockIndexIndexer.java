@@ -2,8 +2,8 @@ package com.destiny1020.stock.es.indexer;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 import org.apache.logging.log4j.LogManager;
@@ -47,13 +47,13 @@ public class StockBlockIndexIndexer {
    * @throws InterruptedException 
    */
   public static void reindexStockBlockIndex(Client client, Date date,
-      ArrayList<StockBlockIndex> indices) throws ElasticsearchException, IOException,
+      List<StockBlockIndex> indices) throws ElasticsearchException, IOException,
       InterruptedException, ExecutionException {
     // default to recreate type
     reindexStockBlockIndex(client, indices, date, true);
   }
 
-  private static void reindexStockBlockIndex(Client client, ArrayList<StockBlockIndex> indices,
+  private static void reindexStockBlockIndex(Client client, List<StockBlockIndex> indices,
       Date date, boolean recreate) throws ElasticsearchException, IOException,
       InterruptedException, ExecutionException {
     String dateStr = new SimpleDateFormat("yyyyMMdd").format(date);
@@ -93,7 +93,7 @@ public class StockBlockIndexIndexer {
   }
 
   private static void importBlockIndices(Client client, String typeName,
-      ArrayList<StockBlockIndex> indices) {
+      List<StockBlockIndex> indices) {
     BulkRequestBuilder bulkRequest = client.prepareBulk();
 
     ObjectMapper mapper = new ObjectMapper(); // create once, reuse

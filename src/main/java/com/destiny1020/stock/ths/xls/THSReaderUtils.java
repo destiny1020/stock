@@ -50,6 +50,9 @@ public class THSReaderUtils {
   // file name patterns [Date]_BK_[BLOCK_ABBR].xls
   public static final String FT_BLOCK_DAILY = FT_PREFIX + "%s_BK_%s.xls";
 
+  // suffix defined below
+  public static final String SF_INDEX_BLOCK = "THSZS.xls";
+
   // TODO: make it an external property in prop file.
   /**
    * Selected blocks that are of my interests
