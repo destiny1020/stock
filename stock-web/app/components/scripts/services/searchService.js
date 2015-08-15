@@ -16,6 +16,7 @@ app.factory('searchService', ['$q', 'esFactory', '$location', function($q, elast
         var deferred = $q.defer();
 
         var query = searchDto.query,
+            index = searchDto.index || 'stock',
             type = searchDto.type,
             size = searchDto.size || 10,
             sort = searchDto.sort || {},
@@ -26,8 +27,7 @@ app.factory('searchService', ['$q', 'esFactory', '$location', function($q, elast
         sort._score = { 'order' : 'desc' };
 
         var searchJson = searchDto.json || {
-                'index': 'stock',
-                'type': type,
+                'index': index,
                 'body': {
                     'size': size,
                     'from': from,
@@ -35,6 +35,11 @@ app.factory('searchService', ['$q', 'esFactory', '$location', function($q, elast
                     'sort': sort
                 }
             };
+
+        // append type if any
+        if(type) {
+            searchJson.type = type;
+        }
 
         // TODO: extract the hardcoded index and type
         client.search(searchJson).then(function(result) {
