@@ -44,7 +44,7 @@ if(isDevelopment()) {
 jsSources3rd = [
     'app/bower_components/jquery/dist/jquery' + jsExt,
     'app/bower_components/bootstrap/dist/js/bootstrap' + jsExt,
-    'app/bower_components/lodash/dist/lodash' + jsExt,
+    'app/bower_components/lodash/lodash' + jsExt,
     'app/bower_components/angular/angular' + jsExt,
     'app/bower_components/angular-route/angular-route' + jsExt,
     'app/bower_components/angular-loading-bar/build/loading-bar' + jsExt,
@@ -55,7 +55,7 @@ jsSources3rd = [
     'app/bower_components/angular-moment/angular-moment' + jsExt,
     'app/bower_components/angular-smart-table/dist/smart-table' + jsExt,
     'app/bower_components/d3/d3' + jsExt,
-    'app/bower_components/nvd3/nv.d3' + jsExt,
+    'app/bower_components/nvd3/build/nv.d3' + jsExt,
     'app/bower_components/angular-nvd3/dist/angular-nvd3' + jsExt
 ];
 
@@ -84,7 +84,7 @@ cssSources3rd = [
     'app/bower_components/bootstrap/css/bootstrap-theme' + cssExt,
     'app/bower_components/font-awesome/css/font-awesome' + cssExt,
     'app/bower_components/angular-loading-bar/build/loading-bar' + cssExt,
-    'app/bower_components/nvd3/nv.d3' + cssExt
+    'app/bower_components/nvd3/build/nv.d3' + cssExt
 ];
 
 // all application css dependencies defined here

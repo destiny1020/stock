@@ -21,15 +21,20 @@ function($scope, searchService) {
             color: d3.scale.category10().range(),
 
             useInteractiveGuideline: true,
-            interpolate: 'linear',
+            interpolate: 'monotone',
+            forceX: [1, 20],
+            forceY: [-0.1, 0.1],
             dispatch: {
-                stateChange: function(e){ console.log("stateChange"); },
-                changeState: function(e){ console.log("changeState"); },
-                tooltipShow: function(e){ console.log("tooltipShow"); },
-                tooltipHide: function(e){ console.log("tooltipHide"); }
+                stateChange: function(e){},
+                changeState: function(e){},
+                tooltipShow: function(e){},
+                tooltipHide: function(e){}
             },
             xAxis: {
-                axisLabel: '日期'
+                axisLabel: '日期',
+                tickFormat: function(d){
+                    return formatter(new Date(mappingIdxToDate[d]));
+                },
             },
             yAxis: {
                 axisLabel: '涨幅(%)',
@@ -39,26 +44,7 @@ function($scope, searchService) {
                 axisLabelDistance: 30
             },
             callback: function(chart){
-                console.log("!!! lineChart callback !!!");
             }
-        },
-        "legend": {
-          "dispatch": {},
-          "width": 200,
-          "height": 20,
-          "align": true,
-          "rightAlign": true,
-          "padding": 40,
-          "updateState": true,
-          "radioButtonMode": false,
-          "expanded": false,
-          "vers": "classic",
-          "margin": {
-            "top": 5,
-            "right": 0,
-            "bottom": 5,
-            "left": 0
-          }
         },
         title: {
             enable: true,
@@ -82,6 +68,9 @@ function($scope, searchService) {
         }
     };
 
+    var mappingIdxToDate = [];
+    var mappingDateToIdx = [];
+    var formatter = d3.time.format('%m-%d');
     getData();
 
     function getData() {
@@ -91,7 +80,7 @@ function($scope, searchService) {
                 'filtered': {
                 	'filter': {
                 		'terms': {
-                			'name.raw': ['大飞机', '国防军工', '计算机应用', '医疗改革']
+                			'name.raw': ['银行', '国防军工', '计算机应用', '医疗改革']
                 		}
                 	}
                 }
@@ -102,53 +91,51 @@ function($scope, searchService) {
             size: 500
         };
 
-        var dfj = [],
+        var yh = [],
         	gfjg = [],
             jsjyy = [],
             ylgg = [];
 
-        var formatter = d3.time.format("%Y-%m-%d");
         searchService.search(searchDto).then(function(result) {
+            // create mapping from idx ---> recordDate
+            var allDates = _.chain(result.records).pluck('recordDate').unique().value();
+            var indices = _.range(1, allDates.length + 1);
+            mappingIdxToDate = _.zipObject(indices, allDates);
+            mappingDateToIdx = _.invert(mappingIdxToDate);
+
             var results = d3.nest()
             	.key(function(d){ return d.name; })
             	.sortValues(function(a, b){ return a.recordDate - b.recordDate; })
             	.entries(result.records);
 
-            var idx = 1;
             var dailyMapping = function(daily) {
             	return {
-            		x: idx++,
+            		x: mappingDateToIdx[daily.recordDate],
             		y: daily.percentage
             	};
             };
             results.forEach(function(block) {
             	switch(block.key) {
-            		case '大飞机':
-            			dfj = block.values.map(dailyMapping);
-            			idx = 1;
+            		case '银行':
+            			yh = block.values.map(dailyMapping);
             			break;
             		case '国防军工':
             			gfjg = block.values.map(dailyMapping);
-            			idx = 1;
             			break;
             		case '计算机应用':
             			jsjyy = block.values.map(dailyMapping);
-            			idx = 1;
             			break;
             		case '医疗改革':
             			ylgg = block.values.map(dailyMapping);
-            			idx = 1;
             			break;
             	}
             });
 
-            console.log(dfj, gfjg, jsjyy, ylgg);
-
             //Line chart data should be sent as an array of series objects.
             $scope.data = [
                 {
-                    values: dfj,      //values - represents the array of {x,y} data points
-                    key: '大飞机',    //key  - the name of the series.
+                    values: yh,      //values - represents the array of {x,y} data points
+                    key: '银行',    //key  - the name of the series.
                 },
                 {
                     values: gfjg,

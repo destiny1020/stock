@@ -1,3 +1,4 @@
-.nv-series {
-	padding: 10px;
+g.zero > line {
+	stroke: black !important;
+	stroke-width: 3px;
 }

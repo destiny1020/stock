@@ -18,6 +18,6 @@
     "lodash": "~3.10.0",
     "angular-moment": "~0.10.1",
     "angular-smart-table": "~2.1.1",
-    "angular-nvd3": "~0.1.1"
+    "angular-nvd3": "~1.0.0"
   }
 }
