@@ -1,4 +1,10 @@
+/*emphasize the 0.0% line*/
 g.zero > line {
 	stroke: black !important;
 	stroke-width: 3px;
+}
+
+/*show the points even not hovered*/
+.container .nv-point {
+	fill-opacity: 1 !important;
 }
