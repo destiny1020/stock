@@ -1,5 +1,6 @@
 /* global console: true */
 /* global d3: true */
+/* global _: true */
 'use strict';
 var app = angular.module('hgsys');
 
@@ -22,7 +23,6 @@ function($scope, searchService) {
 
             useInteractiveGuideline: true,
             interpolate: 'monotone',
-            forceX: [1, 20],
             forceY: [-0.1, 0.1],
             dispatch: {
                 stateChange: function(e){},
@@ -65,7 +65,8 @@ function($scope, searchService) {
                 'text-align': 'justify',
                 'margin': '10px 13px 0px 7px'
             }
-        }
+        },
+        updateWithOptions: true
     };
 
     var mappingIdxToDate = [];
@@ -99,6 +100,7 @@ function($scope, searchService) {
         searchService.search(searchDto).then(function(result) {
             // create mapping from idx ---> recordDate
             var allDates = _.chain(result.records).pluck('recordDate').unique().value();
+            $scope.options.chart.forceX = [1, allDates.length];
             var indices = _.range(1, allDates.length + 1);
             mappingIdxToDate = _.zipObject(indices, allDates);
             mappingDateToIdx = _.invert(mappingIdxToDate);
