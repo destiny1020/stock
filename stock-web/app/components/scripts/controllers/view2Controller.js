@@ -154,4 +154,34 @@ function($scope, searchService) {
             ];
         });
     }
+
+    // block/codes selectors below
+    getBlockNames();
+
+    function getBlockNames() {
+        var searchDto = {
+            index: 'index_block',
+            searchType: 'count',
+            aggs: {
+                'uniq_blocks': {
+                    'terms': {
+                        'field': 'name.raw',
+                        'size': 0
+                    }
+                }
+            }
+        };
+
+        searchService.search(searchDto).then(function(result) {
+            var aggName = _.keys(result.aggregations)[0];
+            var blocks = result.aggregations[aggName].buckets;
+
+            // append a tick property to the block array
+            _.forEach(blocks, function(datum, idx) {
+                datum.ticked = false;
+            });
+
+            $scope.blockCandidates = blocks;
+        });
+    }
 }]);

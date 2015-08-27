@@ -22,7 +22,10 @@
         'smart-table',
 
         // charts
-        'nvd3'
+        'nvd3',
+
+        // multiple select
+        'isteven-multi-select'
       ]
       // issue: http://stackoverflow.com/questions/16569841/angularjs-html5-mode-reloading-the-page-gives-wrong-get-request
       //     ,
