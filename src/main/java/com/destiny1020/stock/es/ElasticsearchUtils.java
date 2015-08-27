@@ -161,4 +161,20 @@ public class ElasticsearchUtils {
     return true;
   }
 
+  /**
+   * To determine whether the block index type for a certain day existed.
+   * For example, when the parameter is "2015-08-27_THSZS.xls",
+   * it will try to check whether index_block/daily-20150827 exists and
+   * return corresponding result.
+   * 
+   * @param blockIndexFileName
+   * @return
+   */
+  public static boolean isBlockIndexTypeExisted(Client client, String blockIndexFileName) {
+    String datePart = blockIndexFileName.substring(0, blockIndexFileName.indexOf('_'));
+    String typeName = "daily-" + datePart.replaceAll("-", "");
+
+    return isTypeExisting(client, ElasticsearchConsts.INDEX_BLOCK, typeName);
+  }
+
 }

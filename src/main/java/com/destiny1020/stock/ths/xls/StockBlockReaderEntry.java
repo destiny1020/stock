@@ -8,7 +8,6 @@ import java.util.concurrent.ExecutionException;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.node.Node;
 
-import com.destiny1020.stock.es.ElasticsearchConsts;
 import com.destiny1020.stock.es.ElasticsearchUtils;
 
 /**
@@ -33,14 +32,19 @@ public class StockBlockReaderEntry {
     Node node = ElasticsearchUtils.getNode();
     Client client = node.client();
 
-    // Step 1: remove the whole index
-    ElasticsearchUtils.deleteIndex(client, ElasticsearchConsts.INDEX_BLOCK);
+    // Step 1: remove the whole index --- not necessary
+    //    ElasticsearchUtils.deleteIndex(client, ElasticsearchConsts.INDEX_BLOCK);
 
     // Step 2: iterate all THSZS data and index them into ES
     Files.list(Paths.get(THSReaderUtils.FT_PREFIX)).filter(path -> {
       return path.toString().endsWith(THSReaderUtils.SF_INDEX_BLOCK);
     }).forEach(path -> {
       try {
+        // check whether the index has already existed
+        if (ElasticsearchUtils.isBlockIndexTypeExisted(client, path.getFileName().toString())) {
+          return;
+        }
+
         System.out.println("Try to load: " + path.toString());
         StockBlockReader.load(client, path.toFile());
       } catch (Exception e) {
