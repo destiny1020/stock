@@ -72,16 +72,30 @@ function($scope, searchService) {
     var mappingIdxToDate = [];
     var mappingDateToIdx = [];
     var formatter = d3.time.format('%m-%d');
-    getData();
 
-    function getData() {
+    // blockSelected should have form of [blockName1, blockName2]
+    function getData(blockSelected) {
+        if(blockSelected === null || 
+            blockSelected === undefined ||
+            blockSelected.length === 0) {
+            return;
+        }
+
+        // truncate extra 
+
+        // result container
+        var resultContainer = {};
+        _.forEach(blockSelected, function(blockName, idx) {
+            resultContainer[blockName] = [];
+        });
+
     	var searchDto = {
     		index: 'index_block',
             query: {
                 'filtered': {
                 	'filter': {
                 		'terms': {
-                			'name.raw': ['银行', '国防军工', '计算机应用', '医疗改革']
+                			'name.raw': blockSelected
                 		}
                 	}
                 }
@@ -117,41 +131,19 @@ function($scope, searchService) {
             	};
             };
             results.forEach(function(block) {
-            	switch(block.key) {
-            		case '银行':
-            			yh = block.values.map(dailyMapping);
-            			break;
-            		case '国防军工':
-            			gfjg = block.values.map(dailyMapping);
-            			break;
-            		case '计算机应用':
-            			jsjyy = block.values.map(dailyMapping);
-            			break;
-            		case '医疗改革':
-            			ylgg = block.values.map(dailyMapping);
-            			break;
-            	}
+                resultContainer[block.key] = block.values.map(dailyMapping);
+            });
+
+            var finalResults = [];
+            _.forIn(resultContainer, function(value, key) {
+                finalResults.push({
+                    key: key,
+                    values: value
+                });
             });
 
             //Line chart data should be sent as an array of series objects.
-            $scope.data = [
-                {
-                    values: yh,      //values - represents the array of {x,y} data points
-                    key: '银行',    //key  - the name of the series.
-                },
-                {
-                    values: gfjg,
-                    key: '国防军工'
-                },
-                {
-                    values: jsjyy,
-                    key: '计算机应用'
-                },
-                {
-                    values: ylgg,
-                    key: '医疗改革'
-                }
-            ];
+            $scope.data = finalResults;
         });
     }
 
@@ -184,4 +176,15 @@ function($scope, searchService) {
             $scope.blockCandidates = blocks;
         });
     }
+
+    $scope.blockSelect = function(block) {
+       var selectedBlocks = _.pluck($scope.blockSelected, 'key');
+
+       // limit the lines count limit to 4
+       getData(selectedBlocks.splice(0, 4));
+    };
+
+    $scope.blockUnselect = function() {
+        $scope.data = [];
+    };
 }]);

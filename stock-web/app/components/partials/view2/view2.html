@@ -4,15 +4,16 @@
     <br>
 
     <!-- select controls for blocks and codes -->
-    <isteven-multi-select    
+    <div
+        isteven-multi-select    
         input-model="blockCandidates"    
         output-model="blockSelected"
         button-label="key"
         item-label="key"
         tick-property="ticked"
+        on-item-click="blockSelect(block)"
         id="blockSelector"
     >
-
-    </isteven-multi-select>
+    </div>
 </div>
 </div>
