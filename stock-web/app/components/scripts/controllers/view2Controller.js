@@ -223,8 +223,72 @@ function($scope, searchService) {
             });
 
             $scope.dateCandidates = dates;
+
+            if(dates && dates.length > 0) {
+                dates[0].ticked = true;
+                $scope.dateSelected = [dates[0]];
+            }
         });
     }
+
+    $scope.dateSelect = function(date) {
+        $scope.callServer($scope.tableState);
+    };
+
+    // get blocks data for certain date
+    $scope.blocks = [];
+    $scope.itemsByPage = 10;
+    $scope.tableState = undefined;
+
+    $scope.callServer = function(tableState) {
+        var searchDto = {
+            index: 'index_block',
+            query: {
+                match_all: {
+                }
+            },
+            type: 'daily-' + $scope.dateSelected[0].key,
+            sort: {
+                'percentage': 'desc'
+            }
+        };
+
+        $scope.isLoading = true;
+        $scope.tableState = tableState;
+
+        var pagination = tableState.pagination;
+
+        var from = pagination.start || 0;     
+        var number = pagination.number || 10;
+
+        // assemble the search dto
+        searchDto.size = number;
+        searchDto.from = from;
+
+        // assemble sort if any
+        if(tableState.sort.predicate) {
+            searchDto.sort = {};
+            searchDto.sort[tableState.sort.predicate] = {
+                'order' : tableState.sort.reverse ? 'desc' : 'asc'
+            };
+        }
+
+        searchService.search(searchDto).then(function(result) {
+            $scope.blocks = result.records;
+            //tableState.pagination.numberOfPages = result.numberOfPages;//set the number of pages so the pagination can update
+            tableState.pagination.numberOfPages = Math.ceil(result.total / number);//set the number of pages so the pagination can update
+            $scope.isLoading = false;
+        });
+    };
+
+    $scope.chooseItemsPerPage = function(itemByPage) {
+        $scope.itemsByPage = itemByPage;
+
+        // update pagination field
+        $scope.tableState.pagination.number = itemByPage;
+
+        $scope.callServer($scope.tableState);
+    };
 
     // init operations
     function init() {

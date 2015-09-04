@@ -26,5 +26,53 @@
         id="dateSelector"
     >
     </div>
+    <table st-table="stocks" st-pipe="callServer" class="table table-striped">
+        <thead>
+        <tr>
+            <th>名称</th>
+            <th st-sort="percentage" st-sort-default="reverse">涨幅</th>
+            <th st-sort="mfNetFactor">主力净量</th>
+            <th st-sort="mfAmount">主力金额</th>
+            <th st-sort="qrr">量比</th>
+            <th st-sort="risePercentage">上涨百分比-上涨/下跌</th>
+            <th st-sort="pioneer">领涨股</th>
+            <th st-sort="fiveIncPercentage">5日涨幅</th>
+            <th st-sort="tenIncPercentage">10日涨幅</th>
+            <th st-sort="twentyIncPercentage">20日涨幅</th>
+        </tr>
+        </thead>
+        <tbody>
+            <tr ng-repeat="block in blocks">
+                <td>{{block.name}}</td>
+                <td>{{block.percentage * 100 | number:2}}%</td>
+                <td>{{block.mfNetFactor}}</td>
+                <td>{{block.mfAmount | currency:'￥'}}</td>
+                <td>{{block.qrr | number:2}}</td>
+                <td>{{block.risePercentage * 100 | number:2}}% - {{block.riseCount}} / {{ block.fallCount }}</td>
+                <td>{{block.pioneer}}</td>
+                <td ng-show="block.fiveIncPercentage">{{block.fiveIncPercentage * 100 | number:2}}%</td>
+                <td ng-show="!block.fiveIncPercentage">--</td>
+                <td ng-show="block.tenIncPercentage">{{block.tenIncPercentage * 100 | number:2}}%</td>
+                <td ng-show="!block.tenIncPercentage">--</td>
+                <td ng-show="block.twentyIncPercentage">{{block.twentyIncPercentage  * 100 | number:2}}%</td>
+                <td ng-show="!block.twentyIncPercentage">--</td>
+            </tr>
+        </tbody>
+        <tfoot>
+            <tr>
+                <td class="text-center" st-pagination="" st-template="partials/pagination.custom.html"
+                    colspan="7" st-items-by-page="itemsByPage">
+                </td>
+                <td colspan="2">
+                    <div class="btn-group pull-right ng-scope">
+                        <!-- could be within a ng-repeat-->
+                        <button type="button" ng-class="{'active':itemsByPage === 10}" ng-click="chooseItemsPerPage(10)" class="btn btn-default">10</button>
+                        <button type="button" ng-class="{'active':itemsByPage === 25}" ng-click="chooseItemsPerPage(25)" class="btn btn-default">25</button>
+                        <button type="button" ng-class="{'active':itemsByPage === 50}" ng-click="chooseItemsPerPage(50)" class="btn btn-default">50</button>
+                    </div>
+                </td>
+            </tr>
+        </tfoot>
+    </table>    
 </div>
 </div>
