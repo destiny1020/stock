@@ -48,7 +48,7 @@ function($scope, searchService) {
         },
         title: {
             enable: true,
-            text: 'Block Indices'
+            text: '板块运行示意图'
         },
         subtitle: {
             enable: false,
@@ -105,11 +105,6 @@ function($scope, searchService) {
             },
             size: 500
         };
-
-        var yh = [],
-        	gfjg = [],
-            jsjyy = [],
-            ylgg = [];
 
         searchService.search(searchDto).then(function(result) {
             // create mapping from idx ---> recordDate
@@ -170,7 +165,9 @@ function($scope, searchService) {
 
             // append a tick property to the block array
             _.forEach(blocks, function(datum, idx) {
-                datum.ticked = false;
+                if(defaultBlocks.indexOf(datum.key) !== -1) {
+                    datum.ticked = true;
+                }
             });
 
             $scope.blockCandidates = blocks;
@@ -187,4 +184,13 @@ function($scope, searchService) {
     $scope.blockUnselect = function() {
         $scope.data = [];
     };
+
+    // load for the first time
+    var defaultBlocks = ['银行', '大飞机', '计算机应用'];
+    $scope.blockSelected = _.map(defaultBlocks, function(block) {
+        return {
+            key: block
+        };
+    });
+    $scope.blockSelect();
 }]);
