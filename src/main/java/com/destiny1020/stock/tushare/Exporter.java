@@ -1,8 +1,6 @@
 package com.destiny1020.stock.tushare;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 
 /**
  * Export data to the XLS.
@@ -19,17 +17,15 @@ public class Exporter {
    * @param startDay
    * @param endDay
    * @throws IOException
+   * @throws InterruptedException 
    */
   public static void exportToMySQL(String symbol, String startDay, String endDay)
-      throws IOException {
-    ProcessBuilder pb = new ProcessBuilder("python", "to_mysql.py", symbol, startDay, endDay);
-    System.out.println(pb.command());
-    Process p = pb.start();
-
-    BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream()));
-    in.lines().forEach(line -> {
-    });
-    in.close();
+      throws IOException, InterruptedException {
+    Process proc =
+        Runtime.getRuntime().exec(
+            "python E:\\Code\\STS\\workspace-sts-3.6.4.RELEASE\\stock\\scripts\\to_mysql.py "
+                + symbol + " " + startDay + " " + endDay);
+    proc.waitFor();
   }
 
   /**
@@ -39,42 +35,20 @@ public class Exporter {
    * @param startDay
    * @param endDay
    * @throws IOException 
+   * @throws InterruptedException 
    */
   public static void exportToExcel(String symbol, String startDay, String endDay)
-      throws IOException {
-    ProcessBuilder pb = new ProcessBuilder("python", "to_excel.py", symbol, startDay, endDay);
-    System.out.println(pb.command());
-    Process p = pb.start();
+      throws IOException, InterruptedException {
 
-    BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream()));
-    in.lines().forEach(line -> {
-    });
-    in.close();
+    Process proc =
+        Runtime.getRuntime().exec(
+            "python E:\\Code\\STS\\workspace-sts-3.6.4.RELEASE\\stock\\scripts\\to_excel.py "
+                + symbol + " " + startDay + " " + endDay);
+    proc.waitFor();
   }
 
-  public static void main(String[] args) {
-    //    try {
-    //      //      String prg = "import sys\nprint int(sys.argv[1])+int(sys.argv[2])\n";
-    //      //      BufferedWriter out = new BufferedWriter(new FileWriter("test1.py"));
-    //      //      out.write(prg);
-    //      //      out.close();
-    //      //      int number1 = 10;
-    //      //      int number2 = 32;
-    //
-    //      ProcessBuilder pb = new ProcessBuilder("python", "test1.py");
-    //      Process p = pb.start();
-    //
-    //      BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream()));
-    //      in.lines().forEach(line -> {
-    //      });
-    //      in.close();
-    //
-    //      System.out.println(Files.exists(Paths.get("d:/600774.xls")));
-    //    } catch (Exception e) {
-    //      e.printStackTrace();
-    //    }
-
-
+  public static void main(String[] args) throws IOException, InterruptedException {
+    exportToMySQL("000656", "2001-01-01", "2015-12-31");
   }
 
 }
