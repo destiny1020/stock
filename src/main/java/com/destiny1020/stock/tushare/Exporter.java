@@ -1,6 +1,13 @@
 package com.destiny1020.stock.tushare;
 
 import java.io.IOException;
+import java.util.Map;
+
+import org.elasticsearch.client.Client;
+import org.elasticsearch.node.Node;
+
+import com.destiny1020.stock.es.ElasticsearchCommons;
+import com.destiny1020.stock.es.ElasticsearchUtils;
 
 /**
  * Export data to the XLS.
@@ -19,12 +26,12 @@ public class Exporter {
    * @throws IOException
    * @throws InterruptedException 
    */
-  public static void exportToMySQL(String symbol, String startDay, String endDay)
-      throws IOException, InterruptedException {
+  public static void exportToES(String symbol, String startDay, String endDay) throws IOException,
+      InterruptedException {
     Process proc =
         Runtime.getRuntime().exec(
-            "python E:\\Code\\STS\\workspace-sts-3.6.4.RELEASE\\stock\\scripts\\to_mysql.py "
-                + symbol + " " + startDay + " " + endDay);
+            "python E:\\Code\\STS\\workspace-sts-3.6.4.RELEASE\\stock\\scripts\\to_es.py " + symbol
+                + " " + startDay + " " + endDay);
     proc.waitFor();
   }
 
@@ -48,7 +55,18 @@ public class Exporter {
   }
 
   public static void main(String[] args) throws IOException, InterruptedException {
-    exportToMySQL("000656", "2001-01-01", "2015-12-31");
+    String startDate = "2001-01-01";
+    String endDate = "2015-12-31";
+
+    // retrieve all symbols
+    Node node = ElasticsearchUtils.getNode();
+    Client client = node.client();
+
+    Map<String, String> symbolToNamesMap = ElasticsearchCommons.getSymbolToNamesMap(client);
+    for (String symbol : symbolToNamesMap.keySet()) {
+      System.out.println(String.format("Exporting %s into ES...", symbol));
+      exportToES(symbol, startDate, endDate);
+    }
   }
 
 }

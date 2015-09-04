@@ -12,8 +12,8 @@ public class ExporterTest {
   }
 
   @Test
-  public void testExportMySQL() throws IOException, InterruptedException {
-    Exporter.exportToMySQL("600886", "2015-01-01", "2015-12-31");
+  public void testExportES() throws IOException, InterruptedException {
+    Exporter.exportToES("600886", "2015-01-01", "2015-12-31");
   }
 
 }

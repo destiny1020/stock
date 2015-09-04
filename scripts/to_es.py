@@ -1,5 +1,6 @@
 import sys
 import math
+import types
 from sqlalchemy import create_engine
 import tushare as ts
 import pandas as pd
@@ -11,6 +12,11 @@ start = sys.argv[2]
 end = sys.argv[3]
 
 df = ts.get_hist_data(symbol, start=start, end=end, ktype='D')
+
+if type(df) is types.NoneType:
+	print '%s is not a valid symbol.' % symbol 
+	sys.exit(0)
+
 # engine = create_engine('mysql+pymysql://root:adobe@127.0.0.1/tushare?charset=utf8')
 
 # process the data to add additional cols
