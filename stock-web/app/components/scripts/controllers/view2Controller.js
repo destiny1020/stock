@@ -142,9 +142,6 @@ function($scope, searchService) {
         });
     }
 
-    // block/codes selectors below
-    getBlockNames();
-
     function getBlockNames() {
         var searchDto = {
             index: 'index_block',
@@ -167,6 +164,8 @@ function($scope, searchService) {
             _.forEach(blocks, function(datum, idx) {
                 if(defaultBlocks.indexOf(datum.key) !== -1) {
                     datum.ticked = true;
+                } else {
+                    datum.ticked = false;
                 }
             });
 
@@ -192,5 +191,51 @@ function($scope, searchService) {
             key: block
         };
     });
-    $scope.blockSelect();
+
+    // load available dates from index_block
+    function getAvailableDates() {
+        var searchDto = {
+            index: 'index_block',
+            searchType: 'count',
+            aggs: {
+                'uniq_dates': {
+                    'terms': {
+                        'field': '_type',
+                        'size': 0
+                    }
+                }
+            }
+        };
+
+        searchService.search(searchDto).then(function(result) {
+            var aggName = _.keys(result.aggregations)[0];
+            var dates = result.aggregations[aggName].buckets;
+
+            // append a tick property to the block array
+            _.forEach(dates, function(datum, idx) {
+                datum.key = datum.key.substring(datum.key.indexOf('-') + 1);
+                datum.ticked = false;
+            });
+
+            // sort the dates by date
+            dates = _.sortBy(dates, function(datum) {
+                return -parseInt(datum.key, 10);
+            });
+
+            $scope.dateCandidates = dates;
+        });
+    }
+
+    // init operations
+    function init() {
+        // available dates
+        getAvailableDates();
+
+        // block/codes selectors below
+        getBlockNames();
+
+        $scope.blockSelect();
+    }
+
+    init();
 }]);

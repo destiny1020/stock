@@ -1,8 +1,4 @@
 <div class="container">
-    <nvd3 options="options" data="data" class="with-3d-shadow with-transitions"></nvd3>
-    
-    <br>
-
     <!-- select controls for blocks and codes -->
     <div
         isteven-multi-select    
@@ -13,6 +9,21 @@
         tick-property="ticked"
         on-item-click="blockSelect(block)"
         id="blockSelector"
+    >
+    </div>
+    <nvd3 options="options" data="data" class="with-3d-shadow with-transitions"></nvd3>
+    <br>
+    <!-- select controls for dates -->
+    <div
+        isteven-multi-select    
+        input-model="dateCandidates"    
+        output-model="dateSelected"
+        button-label="key"
+        item-label="key"
+        tick-property="ticked"
+        on-item-click="dateSelect(block)"
+        selection-mode="single"
+        id="dateSelector"
     >
     </div>
 </div>
