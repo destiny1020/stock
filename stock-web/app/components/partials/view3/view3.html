@@ -10,4 +10,17 @@
        typeahead-on-select="selectSymbol($item, $model, $label)"
      />
 
+     <div class="detail-container" ng-if="detailReady">
+
+        <a href="#" target="_blank" data-symbol="{{ selectedSymbol.symbol }}" class="index-box" ng-class="{ 'price-up': selectedSymbol.record.price_change > 0, 'price-down': selectedSymbol.record.price_change < 0}">
+            <div class="name">{{ selectedSymbol.name }} ({{ selectedSymbol.symbol }})</div>
+            <span class="current">{{ selectedSymbol.record.close | number:2 }}</span>
+            <span class="nums">
+                <div class="per">{{ selectedSymbol.record.p_change }}%</div>
+                <div class="change">{{ selectedSymbol.record.price_change | number:2 }}</div>
+            </span>
+        </a>
+
+     </div>
+
 </div>

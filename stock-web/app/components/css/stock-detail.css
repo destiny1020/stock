@@ -1,0 +1,43 @@
+.detail-container {
+    margin-top: 20px;
+}
+
+.index-box {
+    float: left;
+    width: 31%;
+    display: block;
+    text-decoration: none !important;
+    margin-right: 2%;
+    text-align: left;
+    color: #aaa;
+    border-bottom: 2px solid;
+}
+
+a.index-box:hover {
+
+}
+
+.index-box.price-up {
+    color: #d53;
+}
+
+.index-box.price-down {
+    color: #390;
+}
+
+.index-box .name {
+    font-size: 20px;
+}
+
+.index-box .current {
+    display: inline-block;
+    font-weight: 700;
+    font-size: 34px;
+    margin: 2px 2px 2px 0;
+}
+
+.index-box .nums {
+    display: inline-block;
+    font-size: 12px;
+    margin: 2px;
+}

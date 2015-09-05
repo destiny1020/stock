@@ -36,7 +36,39 @@ function($scope, searchService) {
     };
 
     $scope.selectSymbol = function($item, $model, $label) {
-        $scope.selectedSymbol = $item.symbol;
+        $scope.selectedSymbol = $item;
+
+        searchSymbolData($scope.selectedSymbol);
     };
+
+    function searchSymbolData(selectedSymbol) {
+        $scope.detailReady = false;
+        // default to search the last trading day
+        var symbol = selectedSymbol.symbol.substring(2);
+
+        var searchDto = {
+            index: 'stock-tushare',
+            query: {
+                'term': {
+                    'code': {
+                        'value': symbol
+                    }
+                }
+            },
+            sort: {
+                'date': {
+                    'order': 'desc'
+                }
+            },
+            size: 1
+        };
+
+        searchService.search(searchDto).then(function(result) {
+            if(result.records && result.records.length === 1) {
+                $scope.detailReady = true;
+                $scope.selectedSymbol.record = result.records[0];
+            }
+        });
+    }
 
 }]);
