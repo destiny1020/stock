@@ -14,4 +14,9 @@ app.config(['$routeProvider', function($routeProvider) {
         templateUrl: 'partials/view2/view2.html',
         controller: 'View2Ctrl'
     });
+
+    $routeProvider.when('/view3', {
+        templateUrl: 'partials/view3/view3.html',
+        controller: 'View3Ctrl'
+    });
 }]);

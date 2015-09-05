@@ -63,10 +63,14 @@ public class Exporter {
     Client client = node.client();
 
     Map<String, String> symbolToNamesMap = ElasticsearchCommons.getSymbolToNamesMap(client);
-    for (String symbol : symbolToNamesMap.keySet()) {
-      System.out.println(String.format("Exporting %s into ES...", symbol));
-      exportToES(symbol, startDate, endDate);
-    }
-  }
 
+    for (String symbol : symbolToNamesMap.keySet()) {
+      String target = symbol.substring(2);
+      System.out.println(String.format("Exporting %s into ES...", target));
+      exportToES(target, startDate, endDate);
+      Thread.sleep(1000);
+    }
+
+    node.close();
+  }
 }

@@ -1,0 +1,13 @@
+<div class="container">
+
+    <input type="text"
+       placeholder="请输入代码..."
+       class="form-control"
+       ng-model="selectedSymbol"
+       typeahead="item.label for item in autocomplete($viewValue) | limitTo:10"
+       typeahead-wait-ms="300"
+       typeahead-template-url="partials/symbol.typeahead.html"
+       typeahead-on-select="selectSymbol($item, $model, $label)"
+     />
+
+</div>
