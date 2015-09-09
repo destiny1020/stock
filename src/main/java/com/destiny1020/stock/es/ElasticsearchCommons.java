@@ -3,9 +3,15 @@ package com.destiny1020.stock.es;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.elasticsearch.action.search.SearchRequestBuilder;
+import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.sort.SortBuilders;
+import org.elasticsearch.search.sort.SortOrder;
 
 /**
  * Send common used requests for fetching data in ES instance.
@@ -14,6 +20,8 @@ import org.elasticsearch.search.SearchHit;
  *
  */
 public class ElasticsearchCommons {
+
+  private static final Logger LOGGER = LogManager.getLogger(ElasticsearchCommons.class);
 
   private static Map<String, String> STOCK_SYMBOL_TO_NAME_MAP = null;
   private static final int FETCH_SIZE = 3000;
@@ -42,4 +50,29 @@ public class ElasticsearchCommons {
     return STOCK_SYMBOL_TO_NAME_MAP;
   }
 
+  /**
+   * Used to get the max/min value for certain field in index/type.
+   * 
+   * @param client
+   * @param index
+   * @param type
+   * @param field
+   * @param order
+   * @return
+   */
+  public static String getMaxOrMinFieldValue(Client client, String index, String type,
+      String field, SortOrder order) {
+    SearchRequestBuilder searchBuilder = client.prepareSearch(index).setTypes(type);
+    SearchResponse response =
+        searchBuilder.addSort(SortBuilders.fieldSort(field).order(order)).setSize(1).get();
+
+    SearchHit[] hits = response.getHits().getHits();
+    if (hits.length == 0) {
+      LOGGER.warn(String.format("There is no %s value in the %s/%s for field %s",
+          order == SortOrder.ASC ? "min" : "max", index, type, field));
+      return null;
+    }
+
+    return (String) hits[0].getSource().get(field);
+  }
 }

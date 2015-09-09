@@ -11,11 +11,50 @@ symbol = sys.argv[1]
 start = sys.argv[2]
 end = sys.argv[3]
 
-df = ts.get_hist_data(symbol, start=start, end=end, ktype='D')
+df_latest = ts.get_hist_data(symbol, start=start, end=end, ktype='D')
 
-if type(df) is types.NoneType:
+if type(df_latest) is types.NoneType:
     print '%s is not a valid symbol.' % symbol 
     sys.exit(0)
+
+if df_latest.size == 0:
+    print 'No data for %s in %s --- %s' % (symbol, start, end)
+    sys.exit(0)
+
+# retrieve the current data
+es = Elasticsearch()
+res = es.search(index="stock-tushare", body={
+        "query": {
+            "term": {
+                "code": symbol
+            }
+        },
+        "sort": [
+            {
+                "date": {
+                    "order": "asc"
+                }
+            }
+        ],
+        "size": 888
+    })
+
+df_list = []
+
+df_previous_count = res['hits']['total']
+for hit in res['hits']['hits']:
+    # print("%(code)s : %(date)s" % hit["_source"])
+    df_list.append(pd.Series(hit["_source"]));
+
+if df_previous_count > 0:
+    df_previous = pd.DataFrame(df_list).reset_index().set_index('date')
+    # check duplicates
+    for row_index, row in df_latest.iterrows():
+        if row_index not in df_previous.index:
+            df_previous = df_previous.append(row)
+    df = df_previous
+else:
+    df = df_latest
 
 # engine = create_engine('mysql+pymysql://root:adobe@127.0.0.1/tushare?charset=utf8')
 
@@ -23,6 +62,10 @@ if type(df) is types.NoneType:
 df['code'] = symbol
 df['period_type'] = 'D'
 
+df['ma5'] = pd.rolling_mean(df['close'], 5)
+df['ma10'] = pd.rolling_mean(df['close'], 10)
+df['ma15'] = pd.rolling_mean(df['close'], 15)
+df['ma20'] = pd.rolling_mean(df['close'], 20)
 df['ma25'] = pd.rolling_mean(df['close'], 25)
 df['ma30'] = pd.rolling_mean(df['close'], 30)
 df['ma55'] = pd.rolling_mean(df['close'], 55)
@@ -67,9 +110,28 @@ df['bl55'] = df['ma55'] - 2 * pd.rolling_std(df['close'], 55)
 df['bu99'] = df['ma99'] + 2 * pd.rolling_std(df['close'], 99)
 df['bl99'] = df['ma99'] - 2 * pd.rolling_std(df['close'], 99)
 
-# df.to_sql('data_daily',engine, if_exists='append')
+# macd related below
+df['ema12'] = pd.ewma(df['close'], span=12)
+df['ema26'] = pd.ewma(df['close'], span=26)
+df['dif-12-26-9'] = df['ema12'] - df['ema26']
+df['dea-12-26-9'] = pd.ewma(df['dif-12-26-9'], span=9)
+df['macd-12-26-9'] = 2 * (df['dif-12-26-9'] - df['dea-12-26-9'])
 
-es = Elasticsearch()
+df['ema10'] = pd.ewma(df['close'], span=10)
+df['ema20'] = pd.ewma(df['close'], span=20)
+df['dif-10-20-5'] = df['ema10'] - df['ema20']
+df['dea-10-20-5'] = pd.ewma(df['dif-10-20-5'], span=5)
+df['macd-10-20-5'] = 2 * (df['dif-10-20-5'] - df['dea-10-20-5'])
+
+df['ema9'] = pd.ewma(df['close'], span=9)
+df['dif-9-12-6'] = df['ema9'] - df['ema12']
+df['dea-9-12-6'] = pd.ewma(df['dif-9-12-6'], span=6)
+df['macd-9-12-6'] = 2 * (df['dif-9-12-6'] - df['dea-9-12-6'])
+
+# used below print statement to check correctness of certain columns
+# print df[['dif-9-12-6', 'dea-9-12-6', 'macd-9-12-6', 'dif-10-20-5', 'dea-10-20-5', 'macd-10-20-5', 'dif-12-26-9', 'dea-12-26-9', 'macd-12-26-9']].tail(10)
+
+# df.to_sql('data_daily',engine, if_exists='append')
 
 for row_index, row in df.iterrows():
     # print('row index: %s\n row is: %s' % (row_index, row['bl99']))
@@ -129,7 +191,16 @@ for row_index, row in df.iterrows():
         'bl55': row['bl55'] if not math.isnan(row['bl55']) else -1,
         'bu55': row['bu55'] if not math.isnan(row['bu55']) else -1,
         'bl99': row['bl99'] if not math.isnan(row['bl99']) else -1,
-        'bu99': row['bu99'] if not math.isnan(row['bu99']) else -1
+        'bu99': row['bu99'] if not math.isnan(row['bu99']) else -1,
+        'dif-12-26-9': row['dif-12-26-9'] if not math.isnan(row['dif-12-26-9']) else -1,
+        'dea-12-26-9': row['dea-12-26-9'] if not math.isnan(row['dea-12-26-9']) else -1,
+        'macd-12-26-9': row['macd-12-26-9'] if not math.isnan(row['macd-12-26-9']) else -1,
+        'dif-10-20-5': row['dif-10-20-5'] if not math.isnan(row['dif-10-20-5']) else -1,
+        'dea-10-20-5': row['dea-10-20-5'] if not math.isnan(row['dea-10-20-5']) else -1,
+        'macd-10-20-5': row['macd-10-20-5'] if not math.isnan(row['macd-10-20-5']) else -1,
+        'dif-9-12-6': row['dif-9-12-6'] if not math.isnan(row['dif-9-12-6']) else -1,
+        'dea-9-12-6': row['dea-9-12-6'] if not math.isnan(row['dea-9-12-6']) else -1,
+        'macd-9-12-6': row['macd-9-12-6'] if not math.isnan(row['macd-9-12-6']) else -1
     }
     res = es.index(index="stock-tushare", doc_type='data-daily', id=symbol+'_'+row_index ,body=doc)
     # print doc;

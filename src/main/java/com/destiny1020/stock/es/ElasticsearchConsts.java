@@ -46,4 +46,21 @@ public class ElasticsearchConsts {
    */
   public static final String TYPE_DAILY = "daily";
 
+  /**
+   * Stores daily/timely data exported from TS
+   */
+  public static final String TUSHARE_INDEX = "stock-tushare";
+
+  /**
+   * Stores daily data exported from TS
+   */
+  public static final String TUSHARE_TYPE_DAILY = "data-daily";
+
+  /**
+   * Stores weekly data exported from TS
+   */
+  public static final String TUSHARE_TYPE_WEEKLY = "data-weekly";
+
+
+
 }
