@@ -1,15 +1,31 @@
 <div class="container">
-    <!-- select controls for blocks and codes -->
-    <div
-        isteven-multi-select    
-        input-model="blockCandidates"    
-        output-model="blockSelected"
-        button-label="key"
-        item-label="key"
-        tick-property="ticked"
-        on-item-click="blockSelect(block)"
-        id="blockSelector"
-    >
+    <div>
+        <!-- select controls for blocks and codes -->
+        <span id="select-block-lbl">请选择板块: </span>
+        <div
+            isteven-multi-select    
+            input-model="blockCandidates"    
+            output-model="blockSelected"
+            button-label="key"
+            item-label="key"
+            tick-property="ticked"
+            on-item-click="blockSelect(block)"
+            on-select-none="blockClear()"
+            id="blockSelector"
+        >
+        </div>
+
+        <span id="select-individual-lbl">请选择个股: </span>
+        <input id="individualSelector"
+            type="text"
+            placeholder="请输入代码或名称..."
+            class="form-control"
+            ng-model="selectedSymbol"
+            typeahead="item.label for item in autocomplete($viewValue) | limitTo:10"
+            typeahead-wait-ms="300"
+            typeahead-template-url="partials/symbol.typeahead.html"
+            typeahead-on-select="selectSymbol($item, $model, $label)"
+        />
     </div>
     <nvd3 options="options" data="data" class="with-3d-shadow with-transitions"></nvd3>
     <br>

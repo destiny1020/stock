@@ -21,12 +21,21 @@ import com.destiny1020.stock.es.ElasticsearchUtils;
 import com.destiny1020.stock.es.setting.CommonSettings;
 import com.destiny1020.stock.model.StockSymbol;
 
+/**
+ * For the index stock_constant.
+ * 
+ * @author destiny1020
+ *
+ */
 public class StockSymbolIndexer {
 
   private static final Logger LOGGER = LogManager.getLogger(StockSymbolIndexer.class);
 
   public static void reindexStockSymbols(Client client, List<StockSymbol> stocks)
       throws IOException, InterruptedException, ExecutionException {
+    // update index mappings for analyzers
+    updateIndexSettings(client);
+
     // create mappings for stock/symbol
     recreateMappings(client);
 
@@ -40,12 +49,12 @@ public class StockSymbolIndexer {
     // delete if any
     // delete mapping will cause all existing data been removed
     GetMappingsResponse getResponse =
-        client.admin().indices().prepareGetMappings(ElasticsearchConsts.INDEX_STOCK)
+        client.admin().indices().prepareGetMappings(ElasticsearchConsts.INDEX_STOCK_CONSTANT)
             .setTypes(ElasticsearchConsts.TYPE_SYMBOL).execute().actionGet();
 
     if (getResponse.getMappings().size() == 1) {
       DeleteMappingResponse deleteResponse =
-          client.admin().indices().prepareDeleteMapping(ElasticsearchConsts.INDEX_STOCK)
+          client.admin().indices().prepareDeleteMapping(ElasticsearchConsts.INDEX_STOCK_CONSTANT)
               .setType(ElasticsearchConsts.TYPE_SYMBOL).execute().actionGet();
 
       if (deleteResponse != null && deleteResponse.isAcknowledged()) {
@@ -56,7 +65,7 @@ public class StockSymbolIndexer {
     }
 
     PutMappingResponse response =
-        client.admin().indices().preparePutMapping(ElasticsearchConsts.INDEX_STOCK)
+        client.admin().indices().preparePutMapping(ElasticsearchConsts.INDEX_STOCK_CONSTANT)
             .setType(ElasticsearchConsts.TYPE_SYMBOL).setSource(getStockSymbolMappings()).execute()
             .actionGet();
 
@@ -82,7 +91,8 @@ public class StockSymbolIndexer {
       ExecutionException, IOException {
     // close the index
     CloseIndexResponse closeIndexResponse =
-        client.admin().indices().prepareClose(ElasticsearchConsts.INDEX_STOCK).execute().get();
+        client.admin().indices().prepareClose(ElasticsearchConsts.INDEX_STOCK_CONSTANT).execute()
+            .get();
     if (closeIndexResponse.isAcknowledged()) {
       LOGGER.info("INDEX Stock has been closed !");
     } else {
@@ -93,8 +103,8 @@ public class StockSymbolIndexer {
     // settings for the analyers
     UpdateSettingsResponse usr =
         client.admin().indices().prepareUpdateSettings()
-            .setIndices(ElasticsearchConsts.INDEX_STOCK).setSettings(getStockSymbolSettings())
-            .execute().get();
+            .setIndices(ElasticsearchConsts.INDEX_STOCK_CONSTANT)
+            .setSettings(getStockSymbolSettings()).execute().get();
     if (usr.isAcknowledged()) {
       LOGGER.info("INDEX Stock has been updated with filter and analyzer !");
     } else {
@@ -103,7 +113,8 @@ public class StockSymbolIndexer {
 
     // open the index
     OpenIndexResponse openIndexResponse =
-        client.admin().indices().prepareOpen(ElasticsearchConsts.INDEX_STOCK).execute().get();
+        client.admin().indices().prepareOpen(ElasticsearchConsts.INDEX_STOCK_CONSTANT).execute()
+            .get();
     if (openIndexResponse.isAcknowledged()) {
       LOGGER.info("INDEX Stock has been opened !");
     } else {
@@ -121,7 +132,6 @@ public class StockSymbolIndexer {
     XContentBuilder builder = XContentFactory.jsonBuilder()
             .startObject()
               .startObject(ElasticsearchConsts.TYPE_SYMBOL)
-                .field("dynamic", "strict")
                 .startObject("_id")
                   .field("path", "symbol")
                 .endObject()

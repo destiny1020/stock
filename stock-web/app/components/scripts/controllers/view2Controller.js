@@ -76,12 +76,9 @@ function($scope, searchService) {
     // blockSelected should have form of [blockName1, blockName2]
     function getData(blockSelected) {
         if(blockSelected === null || 
-            blockSelected === undefined ||
-            blockSelected.length === 0) {
+            blockSelected === undefined) {
             return;
         }
-
-        // truncate extra 
 
         // result container
         var resultContainer = {};
@@ -192,6 +189,11 @@ function($scope, searchService) {
         };
     });
 
+    $scope.blockClear = function() {
+        console.log('haha');
+        getData([]);
+    };
+
     // load available dates from index_block
     function getAvailableDates() {
         var searchDto = {
@@ -288,6 +290,34 @@ function($scope, searchService) {
         $scope.tableState.pagination.number = itemByPage;
 
         $scope.callServer($scope.tableState);
+    };
+
+    // individual share typeahead support
+    $scope.autocomplete = function(symbol) {
+        var keywords = [];
+        var searchDto = {
+            index: 'stock_constant',
+            query: {
+                'wildcard': {
+                    'symbol': {
+                        'value': '*' + symbol + '*'
+                    }
+                }
+            },
+            size: 10
+        };
+
+        return searchService.search(searchDto).then(function(result) {
+            _.forEach(result.records, function(datum) {
+                keywords.push({
+                    'label': datum.symbol + ' --- ' + datum.name,
+                    'symbol': datum.symbol,
+                    'name': datum.name
+                });
+            });
+
+            return keywords;
+        });
     };
 
     // init operations

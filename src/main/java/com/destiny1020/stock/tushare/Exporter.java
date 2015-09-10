@@ -85,7 +85,6 @@ public class Exporter {
       System.out.println(String.format("Exporting %s into ES for %s --- %s", symbol, startDate,
           endDate));
       exportToES(target, startDate, endDate);
-      Thread.sleep(1000);
     }
 
     node.close();
