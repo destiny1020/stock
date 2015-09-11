@@ -7,15 +7,42 @@ var app = angular.module('hgsys');
 app.controller('View3Ctrl', ['$scope', 'searchService',
 function($scope, searchService) {
 
-    $scope.symbolCandates = [];
-    $scope.autocomplete = function(symbol) {
+    $scope.selectedSymbols = [];
+    // $scope.autocomplete = function(symbol) {
+    //     var keywords = [];
+    //     var searchDto = {
+    //         index: 'stock_constant',
+    //         query: {
+    //             'wildcard': {
+    //                 'symbol': {
+    //                     'value': '*' + symbol + '*'
+    //                 }
+    //             }
+    //         },
+    //         size: 10
+    //     };
+
+    //     return searchService.search(searchDto).then(function(result) {
+    //         _.forEach(result.records, function(datum) {
+    //             keywords.push({
+    //                 'label': datum.symbol + ' --- ' + datum.name,
+    //                 'symbol': datum.symbol,
+    //                 'name': datum.name
+    //             });
+    //         });
+
+    //         return keywords;
+    //     });
+    // };
+
+    $scope.loadShares = function($query) {
         var keywords = [];
         var searchDto = {
             index: 'stock_constant',
             query: {
                 'wildcard': {
                     'symbol': {
-                        'value': '*' + symbol + '*'
+                        'value': '*' + $query + '*'
                     }
                 }
             },
@@ -35,16 +62,17 @@ function($scope, searchService) {
         });
     };
 
-    $scope.selectSymbol = function($item, $model, $label) {
-        $scope.selectedSymbol = $item;
+    $scope.addSymbol = function($tag) {
+        $scope.selectedSymbols.push($tag);
+        $scope.selectedSymbol = $tag;
 
         searchSymbolData($scope.selectedSymbol);
     };
 
-    function searchSymbolData(selectedSymbol) {
+    function searchSymbolData(symbolObj) {
         $scope.detailReady = false;
         // default to search the last trading day
-        var symbol = selectedSymbol.symbol.substring(2);
+        var symbol = symbolObj.symbol.substring(2);
 
         var searchDto = {
             index: 'stock-tushare',

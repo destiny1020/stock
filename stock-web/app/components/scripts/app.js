@@ -25,7 +25,10 @@
         'nvd3',
 
         // multiple select
-        'isteven-multi-select'
+        'isteven-multi-select',
+
+        // tags input
+        'ngTagsInput'
       ]
       // issue: http://stackoverflow.com/questions/16569841/angularjs-html5-mode-reloading-the-page-gives-wrong-get-request
       //     ,

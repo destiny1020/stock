@@ -1,6 +1,6 @@
 <div class="container">
 
-    <input type="text"
+<!--     <input type="text"
        placeholder="请输入代码或名称..."
        class="form-control"
        ng-model="selectedSymbol"
@@ -8,7 +8,20 @@
        typeahead-wait-ms="300"
        typeahead-template-url="partials/symbol.typeahead.html"
        typeahead-on-select="selectSymbol($item, $model, $label)"
-     />
+     /> -->
+
+    <tags-input ng-model="tags"
+      placeholder="请输入代码或名称..."
+      key-property="symbol"
+      display-property="label"
+      add-from-autocomplete-only="true"
+      on-tag-added="addSymbol($tag)">
+      <auto-complete source="loadShares($query)"
+        template="partials/symbol.tags.html"
+        display-property="symbol"
+      >
+      </auto-complete>
+    </tags-input>
 
      <div class="detail-container" ng-if="detailReady">
 

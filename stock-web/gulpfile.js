@@ -57,7 +57,8 @@ jsSources3rd = [
     'app/bower_components/d3/d3' + jsExt,
     'app/bower_components/nvd3/build/nv.d3' + jsExt,
     'app/bower_components/angular-nvd3/dist/angular-nvd3' + jsExt,
-    'app/bower_components/angular-multi-select/isteven-multi-select' + '.js'
+    'app/bower_components/angular-multi-select/isteven-multi-select' + '.js',
+    'app/bower_components/ng-tags-input/ng-tags-input' + jsExt
 ];
 
 // all application js dependencies defined here
@@ -86,7 +87,9 @@ cssSources3rd = [
     'app/bower_components/font-awesome/css/font-awesome' + cssExt,
     'app/bower_components/angular-loading-bar/build/loading-bar' + cssExt,
     'app/bower_components/nvd3/build/nv.d3' + cssExt,
-    'app/bower_components/angular-multi-select/isteven-multi-select' + '.css'
+    'app/bower_components/angular-multi-select/isteven-multi-select' + '.css',
+    'app/bower_components/ng-tags-input/ng-tags-input' + cssExt,
+    'app/bower_components/ng-tags-input/ng-tags-input.bootstrap' + cssExt
 ];
 
 // all application css dependencies defined here
