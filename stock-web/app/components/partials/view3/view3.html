@@ -15,7 +15,10 @@
       key-property="symbol"
       display-property="label"
       add-from-autocomplete-only="true"
-      on-tag-added="addSymbol($tag)">
+      max-tags="5"
+      on-tag-adding="addingSymbol($tag)"
+      on-tag-added="addSymbol($tag)"
+      on-tag-removed="removeSymbol($tag)">
       <auto-complete source="loadShares($query)"
         template="partials/symbol.tags.html"
         display-property="symbol"
@@ -25,7 +28,7 @@
 
      <div class="detail-container" ng-if="detailReady">
 
-        <a href="#" target="_blank" data-symbol="{{ selectedSymbol.symbol }}" class="index-box" ng-class="{ 'price-up': selectedSymbol.record.price_change > 0, 'price-down': selectedSymbol.record.price_change < 0}">
+        <a href="#" target="_blank" data-symbol="{{ selectedSymbol.symbol }}" class="index-box" ng-class="{ 'price-up': selectedSymbol.record.price_change > 0, 'price-down': selectedSymbol.record.price_change < 0}" ng-repeat="selectedSymbol in selectedSymbols track by selectedSymbol.symbol">
             <div class="name">{{ selectedSymbol.name }} ({{ selectedSymbol.symbol }})</div>
             <span class="current">{{ selectedSymbol.record.close | number:2 }}</span>
             <span class="nums">

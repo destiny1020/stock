@@ -62,11 +62,29 @@ function($scope, searchService) {
         });
     };
 
+    $scope.addingSymbol = function($tag) {
+        if($scope.selectedSymbols.length >= 5) {
+            return false;
+        }
+
+        return true;
+    };
+
     $scope.addSymbol = function($tag) {
         $scope.selectedSymbols.push($tag);
         $scope.selectedSymbol = $tag;
 
         searchSymbolData($scope.selectedSymbol);
+    };
+
+    $scope.removeSymbol = function($tag) {
+        _.remove($scope.selectedSymbols, function(symbolObj) {
+            return symbolObj.symbol === $tag.symbol;
+        });
+
+        if($scope.selectedSymbol.symbol === $tag.symbol) {
+            $scope.selectedSymbol = $scope.selectedSymbols[0];
+        }
     };
 
     function searchSymbolData(symbolObj) {
