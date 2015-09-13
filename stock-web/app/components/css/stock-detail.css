@@ -1,4 +1,8 @@
-.detail-container {
+#symbol-selector {
+    width: 98%;
+}
+
+.tickers-container {
     margin-top: 20px;
 }
 
@@ -36,10 +40,21 @@ a.index-box:hover {
     margin: 2px 2px 2px 0;
 }
 
-.index-box .nums {
+.index-box .nums, .index-box .last-trade-day {
     display: inline-block;
     font-size: 12px;
     margin: 2px;
     position: relative;
     top: 2px;
+}
+
+.details-container {
+    padding-top: 20px;
+    clear: both;
+}
+
+.details-container .price-table {
+    float: left;
+    display: inline-block;
+    width: 20%;
 }

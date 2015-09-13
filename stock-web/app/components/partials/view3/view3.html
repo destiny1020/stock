@@ -18,7 +18,8 @@
       max-tags="5"
       on-tag-adding="addingSymbol($tag)"
       on-tag-added="addSymbol($tag)"
-      on-tag-removed="removeSymbol($tag)">
+      on-tag-removed="removeSymbol($tag)"
+      id="symbol-selector">
       <auto-complete source="loadShares($query)"
         template="partials/symbol.tags.html"
         display-property="symbol"
@@ -26,17 +27,45 @@
       </auto-complete>
     </tags-input>
 
-     <div class="detail-container" ng-if="detailReady">
+    <div class="tickers-container" ng-if="detailReady">
 
-        <a href="#" target="_blank" data-symbol="{{ selectedSymbol.symbol }}" class="index-box" ng-class="{ 'price-up': selectedSymbol.record.price_change > 0, 'price-down': selectedSymbol.record.price_change < 0}" ng-repeat="selectedSymbol in selectedSymbols track by selectedSymbol.symbol">
-            <div class="name">{{ selectedSymbol.name }} ({{ selectedSymbol.symbol }})</div>
-            <span class="current">{{ selectedSymbol.record.close | number:2 }}</span>
-            <span class="nums">
-                <div class="per">{{ selectedSymbol.record.p_change * 100 | number:2 }}%</div>
-                <div class="change">{{ selectedSymbol.record.price_change | number:2 }}</div>
-            </span>
-        </a>
+      <a href="#" target="_blank" data-symbol="{{ selectedSymbol.symbol }}" class="index-box" ng-class="{ 'price-up': selectedSymbol.record.price_change > 0, 'price-down': selectedSymbol.record.price_change < 0}" ng-repeat="selectedSymbol in selectedSymbols track by selectedSymbol.symbol">
+          <div class="name">{{ selectedSymbol.name }} ({{ selectedSymbol.symbol }})</div>
+          <span class="current">{{ selectedSymbol.record.close | number:2 }}</span>
+          <span class="nums">
+              <div class="per">{{ selectedSymbol.record.p_change * 100 | number:2 }}%</div>
+              <div class="change">{{ selectedSymbol.record.price_change | number:2 }}</div>
+          </span>
+          <span class="last-trade-day">
+              <div>最近交易日</div>
+              <div>{{ selectedSymbol.record.date }}</div>
+          </span>
+      </a>
+    </div>
 
-     </div>
+    <div class="details-container" ng-if="detailReady">
+      <table class="table table-striped price-table" ng-repeat="selectedSymbol in selectedSymbols track by selectedSymbol.symbol">
+        <thead>
+        <tr>
+            <th>压力/支撑</th>
+            <th>价格</th>
+            <th>幅度</th>
+        </tr>
+        </thead>
+        <tbody>
+            <tr ng-repeat="price in selectedSymbol.sensiblePrices" ng-class="{ 'info':price.name === 'CLOSE', 'danger':price.percentageToClose < 0, 'success':price.percentageToClose > 0 }">
+                <td>{{ price.name }}</td>
+                <td>{{ price.price | number:2 }}</td>
+                <td>{{ price.percentageToClose | number:2 }}%</td>
+            </tr>
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="2">
+                </td>
+            </tr>
+        </tfoot>
+      </table>    
+    </div>
 
 </div>

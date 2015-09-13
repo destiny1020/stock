@@ -114,8 +114,25 @@ function($scope, searchService) {
             if(result.records && result.records.length === 1) {
                 $scope.detailReady = true;
                 $scope.selectedSymbol.record = result.records[0];
+
+                // assemble the sensible prices
+                $scope.selectedSymbol.sensiblePrices = assemblePrices(result.records[0]);
             }
         });
+    }
+
+    function assemblePrices(records) {
+        var neededPriceKeys = ['ma5', 'ma10', 'ma20', 'ma25', 'ma30', 'ma55', 'ma60', 'ma99', 'ma120', 'ma250', 'ma888',
+                               'ema17', 'ema34', 'ema55',
+                               'bl25', 'bu25', 'bl55', 'bu55', 'bl99', 'bu99',
+                               'close'];
+        return _.sortByOrder(_.map(_.pick(records, neededPriceKeys), function(value, key) {
+            return {
+                name: key.toUpperCase(),
+                price: value,
+                percentageToClose: (value - records['close']) / records['close'] * 100
+            }
+        }), ['price'], ['desc']);
     }
 
 }]);
