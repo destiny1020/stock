@@ -27,7 +27,9 @@ symbol = sys.argv[1]
 start = sys.argv[2]
 end = sys.argv[3]
 
-df_latest = ts.get_hist_data(symbol, start=start, end=end, ktype='D')
+# df_latest = ts.get_hist_data(symbol, start=start, end=end, ktype='D')
+df_latest = ts.get_h_data(symbol, start=start, end=end)
+df_latest = df_latest.sort_index()
 
 if type(df_latest) is types.NoneType:
     print '%s is not a valid symbol.' % symbol 
@@ -41,37 +43,44 @@ if df_latest.size == 0:
 symbol = convert_if_index(symbol)
 
 # retrieve the current data
+esNoData = False
 es = Elasticsearch()
-res = es.search(index="stock-tushare", body={
-        "query": {
-            "term": {
-                "code": symbol
-            }
-        },
-        "sort": [
-            {
-                "date": {
-                    "order": "asc"
+try:
+    res = es.search(index="stock-tushare", doc_type="data-history", body={
+            "query": {
+                "term": {
+                    "code": symbol
                 }
-            }
-        ],
-        "size": 888
-    })
+            },
+            "sort": [
+                {
+                    "date": {
+                        "order": "asc"
+                    }
+                }
+            ],
+            "size": 888
+        })
+except:
+    esNoData = True
 
 df_list = []
 
-df_previous_count = res['hits']['total']
-for hit in res['hits']['hits']:
-    # print("%(code)s : %(date)s" % hit["_source"])
-    df_list.append(pd.Series(hit["_source"]));
+if not esNoData:
+    df_previous_count = res['hits']['total']
+    for hit in res['hits']['hits']:
+        # print("%(code)s : %(date)s" % hit["_source"])
+        df_list.append(pd.Series(hit["_source"]));
 
-if df_previous_count > 0:
-    df_previous = pd.DataFrame(df_list).reset_index().set_index('date')
-    # check duplicates
-    for row_index, row in df_latest.iterrows():
-        if row_index not in df_previous.index:
-            df_previous = df_previous.append(row)
-    df = df_previous
+    if df_previous_count > 0:
+        df_previous = pd.DataFrame(df_list).reset_index().set_index('date')
+        # check duplicates
+        for row_index, row in df_latest.iterrows():
+            if row_index not in df_previous.index:
+                df_previous = df_previous.append(row)
+        df = df_previous
+    else:
+        df = df_latest
 else:
     df = df_latest
 
@@ -83,6 +92,15 @@ else:
 df['code'] = symbol
 df['period_type'] = 'D'
 
+# percentage change
+df['p_change'] = df['close'] / df['close'].shift(1) - 1
+df['price_change'] = df['close'] / df['close'].shift(1)
+
+# volume related
+df['v_ma5'] = pd.rolling_mean(df['volume'], 5)
+df['v_ma10'] = pd.rolling_mean(df['volume'], 10)
+df['v_ma20'] = pd.rolling_mean(df['volume'], 20)
+
 df['ma5'] = pd.rolling_mean(df['close'], 5)
 df['ma10'] = pd.rolling_mean(df['close'], 10)
 df['ma15'] = pd.rolling_mean(df['close'], 15)
@@ -92,7 +110,6 @@ df['ma30'] = pd.rolling_mean(df['close'], 30)
 df['ma55'] = pd.rolling_mean(df['close'], 55)
 df['ma60'] = pd.rolling_mean(df['close'], 60)
 df['ma99'] = pd.rolling_mean(df['close'], 99)
-print df['ma99']
 df['ma120'] = pd.rolling_mean(df['close'], 120)
 df['ma250'] = pd.rolling_mean(df['close'], 250)
 df['ma888'] = pd.rolling_mean(df['close'], 888)
@@ -158,17 +175,18 @@ df['macd-9-12-6'] = 2 * (df['dif-9-12-6'] - df['dea-9-12-6'])
 for row_index, row in df.iterrows():
     # print('row index: %s\n row is: %s' % (row_index, row['bl99']))
     # print type(row), row.index, 'turnover' in row.index
+    doc_date = '%d-%02d-%02d' % (row_index.year, row_index.month, row_index.day)
     doc = {
         'code': symbol,
-        'date': row_index,
+        'date': doc_date,
         'period_type': row['period_type'],
         'open': row['open'],
         'high': row['high'],
         'close': row['close'],
         'low': row['low'],
         'volume': row['volume'],
-        'price_change': row['price_change'],
-        'p_change': row['p_change'],
+        'price_change': row['price_change'] if not math.isnan(row['price_change']) else -1,
+        'p_change': row['p_change'] if not math.isnan(row['p_change']) else -1,
         'ma5': row['ma5'] if not math.isnan(row['ma5']) else -1,
         'ma10': row['ma10'] if not math.isnan(row['ma10']) else -1,
         'ma20': row['ma20'] if not math.isnan(row['ma20']) else -1,
@@ -226,5 +244,7 @@ for row_index, row in df.iterrows():
         'dea-9-12-6': row['dea-9-12-6'] if not math.isnan(row['dea-9-12-6']) else -1,
         'macd-9-12-6': row['macd-9-12-6'] if not math.isnan(row['macd-9-12-6']) else -1
     }
-    res = es.index(index="stock-tushare", doc_type='data-daily', id=symbol+'_'+row_index ,body=doc)
+    doc_id = '%s_%s' % (symbol, doc_date)
+    # print type(row_index), row_index, '%s_%d-%02d-%02d' % (symbol, row_index.year, row_index.month, row_index.day)
+    res = es.index(index="stock-tushare", doc_type='data-history', id=doc_id ,body=doc)
     # print doc;

@@ -57,6 +57,11 @@ public class ElasticsearchConsts {
   public static final String TUSHARE_TYPE_DAILY = "data-daily";
 
   /**
+   * Stores history data exported from TS
+   */
+  public static final String TUSHARE_TYPE_HISTORY = "data-history";
+
+  /**
    * Stores weekly data exported from TS
    */
   public static final String TUSHARE_TYPE_WEEKLY = "data-weekly";
