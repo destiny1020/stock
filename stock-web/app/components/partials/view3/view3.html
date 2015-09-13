@@ -32,7 +32,7 @@
             <div class="name">{{ selectedSymbol.name }} ({{ selectedSymbol.symbol }})</div>
             <span class="current">{{ selectedSymbol.record.close | number:2 }}</span>
             <span class="nums">
-                <div class="per">{{ selectedSymbol.record.p_change }}%</div>
+                <div class="per">{{ selectedSymbol.record.p_change * 100 | number:2 }}%</div>
                 <div class="change">{{ selectedSymbol.record.price_change | number:2 }}</div>
             </span>
         </a>

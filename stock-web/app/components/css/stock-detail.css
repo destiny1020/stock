@@ -40,4 +40,6 @@ a.index-box:hover {
     display: inline-block;
     font-size: 12px;
     margin: 2px;
+    position: relative;
+    top: 2px;
 }

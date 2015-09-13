@@ -63,10 +63,20 @@ public class ElasticsearchCommons {
   public static String getMaxOrMinFieldValue(Client client, String index, String type,
       String field, SortOrder order) {
     SearchRequestBuilder searchBuilder = client.prepareSearch(index).setTypes(type);
-    SearchResponse response =
-        searchBuilder.addSort(SortBuilders.fieldSort(field).order(order)).setSize(1).get();
 
+    // first, check whether any result is available
+    SearchResponse response = searchBuilder.get();
     SearchHit[] hits = response.getHits().getHits();
+    if (hits.length == 0) {
+      LOGGER.warn(String.format("There is no %s value in the %s/%s for field %s",
+          order == SortOrder.ASC ? "min" : "max", index, type, field));
+      return null;
+    }
+
+    searchBuilder = client.prepareSearch(index).setTypes(type);
+    response = searchBuilder.addSort(SortBuilders.fieldSort(field).order(order)).setSize(1).get();
+
+    hits = response.getHits().getHits();
     if (hits.length == 0) {
       LOGGER.warn(String.format("There is no %s value in the %s/%s for field %s",
           order == SortOrder.ASC ? "min" : "max", index, type, field));
@@ -92,12 +102,22 @@ public class ElasticsearchCommons {
       String type, String field, String termField, String termValue, SortOrder order) {
     SearchRequestBuilder searchBuilder = client.prepareSearch(index).setTypes(type);
 
-    searchBuilder.setQuery(QueryBuilders.termQuery(termField, termValue));
-
+    // first, check whether any result is available
     SearchResponse response =
-        searchBuilder.addSort(SortBuilders.fieldSort(field).order(order)).setSize(1).get();
-
+        searchBuilder.setQuery(QueryBuilders.termQuery(termField, termValue)).get();
     SearchHit[] hits = response.getHits().getHits();
+    if (hits.length == 0) {
+      LOGGER.warn(String.format("There is no %s value in the %s/%s for field %s",
+          order == SortOrder.ASC ? "min" : "max", index, type, field));
+      return null;
+    }
+
+    // if there is, then add the sort field
+    searchBuilder = client.prepareSearch(index).setTypes(type);
+    searchBuilder.setQuery(QueryBuilders.termQuery(termField, termValue));
+    response = searchBuilder.addSort(SortBuilders.fieldSort(field).order(order)).setSize(1).get();
+
+    hits = response.getHits().getHits();
     if (hits.length == 0) {
       LOGGER.warn(String.format("There is no %s value in the %s/%s for field %s",
           order == SortOrder.ASC ? "min" : "max", index, type, field));

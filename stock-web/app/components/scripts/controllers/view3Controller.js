@@ -94,6 +94,7 @@ function($scope, searchService) {
 
         var searchDto = {
             index: 'stock-tushare',
+            type: 'data-history',
             query: {
                 'term': {
                     'code': {
