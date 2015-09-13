@@ -111,22 +111,24 @@ public class Exporter {
     Node node = ElasticsearchUtils.getNode();
     Client client = node.client();
 
-    // first retrieve the last available date
-    String maxDateStr =
-        ElasticsearchCommons.getMaxOrMinFieldValue(client, ElasticsearchConsts.TUSHARE_INDEX,
-            ElasticsearchConsts.TUSHARE_TYPE_HISTORY, "date", SortOrder.DESC);
-    if (StringUtils.isBlank(maxDateStr)) {
-      maxDateStr = "1999-12-31";
-    }
-
-    LocalDate maxDate = LocalDate.parse(maxDateStr);
-    String startDate = maxDate.plusDays(1).toString();
-
     // retrieve all symbols
     Map<String, String> symbolToNamesMap = ElasticsearchCommons.getSymbolToNamesMap(client);
 
     for (String symbol : symbolToNamesMap.keySet()) {
       String target = symbol.substring(2);
+
+      // first retrieve the last available date
+      String maxDateStr =
+          ElasticsearchCommons.getMaxOrMinFieldValueWithTermCriteria(client,
+              ElasticsearchConsts.TUSHARE_INDEX, ElasticsearchConsts.TUSHARE_TYPE_HISTORY, "date",
+              "code", target, SortOrder.DESC);
+      if (StringUtils.isBlank(maxDateStr)) {
+        maxDateStr = "1999-12-31";
+      }
+
+      LocalDate maxDate = LocalDate.parse(maxDateStr);
+      String startDate = maxDate.plusDays(1).toString();
+
       System.out.println(String.format("Exporting History %s into ES for %s --- %s", symbol,
           startDate, endDate));
       exportToESCore(target, startDate, endDate, true);
@@ -135,7 +137,7 @@ public class Exporter {
     node.close();
   }
 
-  public static void main(String[] args) {
-
+  public static void main(String[] args) throws IOException, InterruptedException, ParseException {
+    exportHistoryToES();
   }
 }

@@ -29,15 +29,18 @@ end = sys.argv[3]
 
 # df_latest = ts.get_hist_data(symbol, start=start, end=end, ktype='D')
 df_latest = ts.get_h_data(symbol, start=start, end=end)
+
+if type(df_latest) is types.NoneType or df_latest.size == 0:
+    print '%s is not a valid symbol or no available data' % symbol 
+    sys.exit(0)
+
+
 df_latest = df_latest.sort_index()
 
-if type(df_latest) is types.NoneType:
-    print '%s is not a valid symbol.' % symbol 
-    sys.exit(0)
-
-if df_latest.size == 0:
-    print 'No data for %s in %s --- %s' % (symbol, start, end)
-    sys.exit(0)
+# convert index date to unicode representation
+df_latest = df_latest.reset_index()
+df_latest['date'] = df_latest['date'].apply(lambda x: pd.to_datetime(str(x)).strftime('%Y-%m-%d'))
+df_latest = df_latest.set_index('date')
 
 # special handling for the index
 symbol = convert_if_index(symbol)
@@ -59,7 +62,7 @@ try:
                     }
                 }
             ],
-            "size": 888
+            "size": 10000
         })
 except:
     esNoData = True
@@ -81,12 +84,17 @@ if not esNoData:
         df = df_previous
     else:
         df = df_latest
+
+    # print df.index
+
+    # reorder by date
+    df = df.sort_index()
 else:
     df = df_latest
 
 # engine = create_engine('mysql+pymysql://root:adobe@127.0.0.1/tushare?charset=utf8')
 
-# print df
+print df.index.size
 
 # process the data to add additional cols
 df['code'] = symbol
@@ -94,7 +102,7 @@ df['period_type'] = 'D'
 
 # percentage change
 df['p_change'] = df['close'] / df['close'].shift(1) - 1
-df['price_change'] = df['close'] / df['close'].shift(1)
+df['price_change'] = df['close'] - df['close'].shift(1)
 
 # volume related
 df['v_ma5'] = pd.rolling_mean(df['volume'], 5)
@@ -173,9 +181,12 @@ df['macd-9-12-6'] = 2 * (df['dif-9-12-6'] - df['dea-9-12-6'])
 # df.to_sql('data_daily',engine, if_exists='append')
 
 for row_index, row in df.iterrows():
-    # print('row index: %s\n row is: %s' % (row_index, row['bl99']))
-    # print type(row), row.index, 'turnover' in row.index
-    doc_date = '%d-%02d-%02d' % (row_index.year, row_index.month, row_index.day)
+    if isinstance(row_index, pd.core.index.Index) or isinstance(row_index, pd.tslib.Timestamp):
+        doc_date = '%d-%02d-%02d' % (row_index.year, row_index.month, row_index.day)
+    else:
+        doc_date = row_index
+    doc_id = '%s_%s' % (symbol, doc_date)
+
     doc = {
         'code': symbol,
         'date': doc_date,
@@ -244,7 +255,6 @@ for row_index, row in df.iterrows():
         'dea-9-12-6': row['dea-9-12-6'] if not math.isnan(row['dea-9-12-6']) else -1,
         'macd-9-12-6': row['macd-9-12-6'] if not math.isnan(row['macd-9-12-6']) else -1
     }
-    doc_id = '%s_%s' % (symbol, doc_date)
     # print type(row_index), row_index, '%s_%d-%02d-%02d' % (symbol, row_index.year, row_index.month, row_index.day)
     res = es.index(index="stock-tushare", doc_type='data-history', id=doc_id ,body=doc)
     # print doc;

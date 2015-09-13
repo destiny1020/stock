@@ -75,4 +75,35 @@ public class ElasticsearchCommons {
 
     return (String) hits[0].getSource().get(field);
   }
+
+  /**
+   * Used to get the max/min value for certain field in index/type with one term query.
+   * 
+   * @param client
+   * @param index
+   * @param type
+   * @param field
+   * @param termField
+   * @param termValue
+   * @param order
+   * @return
+   */
+  public static String getMaxOrMinFieldValueWithTermCriteria(Client client, String index,
+      String type, String field, String termField, String termValue, SortOrder order) {
+    SearchRequestBuilder searchBuilder = client.prepareSearch(index).setTypes(type);
+
+    searchBuilder.setQuery(QueryBuilders.termQuery(termField, termValue));
+
+    SearchResponse response =
+        searchBuilder.addSort(SortBuilders.fieldSort(field).order(order)).setSize(1).get();
+
+    SearchHit[] hits = response.getHits().getHits();
+    if (hits.length == 0) {
+      LOGGER.warn(String.format("There is no %s value in the %s/%s for field %s",
+          order == SortOrder.ASC ? "min" : "max", index, type, field));
+      return null;
+    }
+
+    return (String) hits[0].getSource().get(field);
+  }
 }

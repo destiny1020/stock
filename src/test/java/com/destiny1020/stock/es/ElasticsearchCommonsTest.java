@@ -22,4 +22,19 @@ public class ElasticsearchCommonsTest extends ESTestBase {
 
     System.out.println(maxValue + " : " + minValue);
   }
+
+  @Test
+  public void testGetMaxMinFieldValueWithCriteria() {
+    String maxValue =
+        ElasticsearchCommons.getMaxOrMinFieldValueWithTermCriteria(client,
+            ElasticsearchConsts.TUSHARE_INDEX, ElasticsearchConsts.TUSHARE_TYPE_HISTORY, "date",
+            "code", "000915", SortOrder.DESC);
+
+    String minValue =
+        ElasticsearchCommons.getMaxOrMinFieldValueWithTermCriteria(client,
+            ElasticsearchConsts.TUSHARE_INDEX, ElasticsearchConsts.TUSHARE_TYPE_HISTORY, "date",
+            "code", "000915", SortOrder.ASC);
+
+    System.out.println(maxValue + " : " + minValue);
+  }
 }

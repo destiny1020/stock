@@ -11,9 +11,4 @@ public class ExporterTest {
     Exporter.exportToExcel("600886", "2015-01-01", "2015-12-31");
   }
 
-  @Test
-  public void testExportES() throws IOException, InterruptedException {
-    Exporter.exportToES("600886", "2015-01-01", "2015-12-31");
-  }
-
 }
