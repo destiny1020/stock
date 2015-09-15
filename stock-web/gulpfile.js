@@ -49,7 +49,8 @@ jsSources3rd = [
     'app/bower_components/angular-route/angular-route' + jsExt,
     'app/bower_components/angular-loading-bar/build/loading-bar' + jsExt,
     'app/bower_components/angular-animate/angular-animate' + jsExt,
-    'app/bower_components/angular-bootstrap/ui-bootstrap-tpls' + jsExt,
+    'app/bower_components/angular-strap/dist/angular-strap' + jsExt,
+    'app/bower_components/angular-strap/dist/angular-strap.tpl' + jsExt,
     'app/bower_components/elasticsearch/elasticsearch.angular' + jsExt,
     'app/bower_components/moment/moment' + jsExt,
     'app/bower_components/angular-moment/angular-moment' + jsExt,
@@ -90,6 +91,7 @@ cssSources3rd = [
     'app/bower_components/angular-multi-select/isteven-multi-select' + '.css',
     'app/bower_components/ng-tags-input/ng-tags-input' + cssExt,
     'app/bower_components/ng-tags-input/ng-tags-input.bootstrap' + cssExt,
+    'app/bower_components/angular-motion/dist/angular-motion' + cssExt,
     'app/bower_components/font-awesome/css/font-awesome' + cssExt
 ];
 
