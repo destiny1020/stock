@@ -19,7 +19,8 @@
     "angular-moment": "~0.10.1",
     "angular-smart-table": "~2.1.1",
     "angular-nvd3": "~1.0.0",
-    "ng-tags-input": "3.0.0"
+    "ng-tags-input": "3.0.0",
+    "font-awesome": "~4.4.0"
   },
   "devDependencies": {
     "angular-multi-select": "~4.0.0"

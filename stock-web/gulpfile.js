@@ -89,7 +89,8 @@ cssSources3rd = [
     'app/bower_components/nvd3/build/nv.d3' + cssExt,
     'app/bower_components/angular-multi-select/isteven-multi-select' + '.css',
     'app/bower_components/ng-tags-input/ng-tags-input' + cssExt,
-    'app/bower_components/ng-tags-input/ng-tags-input.bootstrap' + cssExt
+    'app/bower_components/ng-tags-input/ng-tags-input.bootstrap' + cssExt,
+    'app/bower_components/font-awesome/css/font-awesome' + cssExt
 ];
 
 // all application css dependencies defined here
