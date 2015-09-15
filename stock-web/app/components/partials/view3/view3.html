@@ -1,4 +1,4 @@
-<div class="container">
+<div class="container-fluid">
 
 <!--     <input type="text"
        placeholder="请输入代码或名称..."
@@ -47,16 +47,22 @@
       <table class="table table-striped price-table" ng-repeat="selectedSymbol in selectedSymbols track by selectedSymbol.symbol">
         <thead>
         <tr>
-            <th>压力/支撑</th>
+            <th>R/S</th>
             <th>价格</th>
             <th>幅度</th>
+            <th></th>
         </tr>
         </thead>
         <tbody>
             <tr ng-repeat="price in selectedSymbol.sensiblePrices" ng-class="{ 'info':price.name === 'CLOSE', 'danger':price.percentageToClose < 0, 'success':price.percentageToClose > 0 }">
-                <td>{{ price.name }}</td>
-                <td>{{ price.price | number:2 }}</td>
-                <td>{{ price.percentageToClose | number:2 }}%</td>
+                <td class="col-xs-4">{{ price.name }}</td>
+                <td class="col-xs-3">{{ price.price | number:2 }}</td>
+                <td class="col-xs-3">
+                    {{ price.percentageToClose | number:2 }}% 
+                </td>
+                <td class="col-xs-2">
+                  <span ng-if="price.deviate" class="deviate-icon"><i class="icon-info-sign" ng-click="clickDeviate(price)"></i></span>
+                </td>
             </tr>
         </tbody>
         <tfoot>

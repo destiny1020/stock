@@ -176,7 +176,7 @@ gulp.task('css', function() {
 gulp.task('font', function() {
     if(fontSources.length > 0) {
         gulp.src(fontSources)
-            .pipe(gulp.dest(outputDir + 'fonts'))
+            .pipe(gulp.dest(outputDir + 'font'))
             .pipe(connect.reload());
     }
 });

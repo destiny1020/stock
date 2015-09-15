@@ -26,6 +26,7 @@ def convert_if_index(symbol):
 symbol = sys.argv[1]
 start = sys.argv[2]
 end = sys.argv[3]
+force_update = sys.argv[4]
 
 # df_latest = ts.get_hist_data(symbol, start=start, end=end, ktype='D')
 df_latest = ts.get_h_data(symbol, start=start, end=end)
@@ -64,21 +65,6 @@ try:
             ],
             "size": 1000
         })
-    last_available_date = es.search(index="stock-tushare", doc_type="data-history", body={
-            "query": {
-                "term": {
-                    "code": symbol
-                }
-            },
-            "sort": [
-                {
-                    "date": {
-                        "order": "desc"
-                    }
-                }
-            ],
-            "size": 1
-        })
 except:
     esNoData = True
 
@@ -106,10 +92,12 @@ if not esNoData:
     df = df.sort_index()
 
     # extract last available date
-    for hit in last_available_date['hits']['hits']: 
-        date_field = pd.Series(hit["_source"])['date']
+    date_field = pd.Series(res['hits']['hits'][0]["_source"])['date']
 else:
     df = df_latest
+
+    # define a valid last available date
+    date_field = '2000-01-01'
 
 # engine = create_engine('mysql+pymysql://root:adobe@127.0.0.1/tushare?charset=utf8')
 
@@ -140,6 +128,13 @@ df['ma99'] = pd.rolling_mean(df['close'], 99)
 df['ma120'] = pd.rolling_mean(df['close'], 120)
 df['ma250'] = pd.rolling_mean(df['close'], 250)
 df['ma888'] = pd.rolling_mean(df['close'], 888)
+
+# deviation indicators
+df['d5'] = (df['ma5'] - df['close']) / df['close']
+df['d10'] = (df['ma10'] - df['close']) / df['close']
+df['d15'] = (df['ma15'] - df['close']) / df['close']
+df['d20'] = (df['ma20'] - df['close']) / df['close']
+df['d30'] = (df['ma30'] - df['close']) / df['close']
 
 df['max5'] = pd.rolling_max(df['high'], 5)
 df['max10'] = pd.rolling_max(df['high'], 10)
@@ -210,7 +205,7 @@ for row_index, row in df.iterrows():
     doc_id = '%s_%s' % (symbol, doc_date)
 
     # print row_index, type(row_index), row_index in df_latest.index
-    if row_index > date_field:
+    if row_index > date_field || force_update.lower() == 'true':
         doc = {
             'code': symbol,
             'date': doc_date,
@@ -224,6 +219,7 @@ for row_index, row in df.iterrows():
             'p_change': row['p_change'] if not math.isnan(row['p_change']) else -1,
             'ma5': row['ma5'] if not math.isnan(row['ma5']) else -1,
             'ma10': row['ma10'] if not math.isnan(row['ma10']) else -1,
+            'ma15': row['ma15'] if not math.isnan(row['ma15']) else -1,
             'ma20': row['ma20'] if not math.isnan(row['ma20']) else -1,
             'ma25': row['ma25'] if not math.isnan(row['ma25']) else -1,
             'ma30': row['ma30'] if not math.isnan(row['ma30']) else -1,
@@ -233,6 +229,10 @@ for row_index, row in df.iterrows():
             'ma120': row['ma120'] if not math.isnan(row['ma120']) else -1,
             'ma250': row['ma250'] if not math.isnan(row['ma250']) else -1,
             'ma888': row['ma888'] if not math.isnan(row['ma888']) else -1,
+            'd5': row['d5'] if not math.isnan(row['d5']) else -1,
+            'd10': row['d10'] if not math.isnan(row['d10']) else -1,
+            'd20': row['d20'] if not math.isnan(row['d20']) else -1,
+            'd30': row['d30'] if not math.isnan(row['d30']) else -1,
             'min5': row['min5'] if not math.isnan(row['min5']) else -1,
             'min10': row['min10'] if not math.isnan(row['min10']) else -1,
             'min20': row['min20'] if not math.isnan(row['min20']) else -1,

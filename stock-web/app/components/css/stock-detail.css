@@ -1,5 +1,6 @@
 #symbol-selector {
-    width: 98%;
+    width: 62%;
+    margin: 0 auto;
 }
 
 .tickers-container {
@@ -57,4 +58,8 @@ a.index-box:hover {
     float: left;
     display: inline-block;
     width: 20%;
+}
+
+.deviate-icon {
+    cursor: pointer;
 }
