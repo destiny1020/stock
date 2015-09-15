@@ -61,7 +61,9 @@
                     {{ price.percentageToClose | number:2 }}% 
                 </td>
                 <td class="col-xs-2">
-                  <span ng-if="price.deviate" class="deviate-icon"><i class="icon-info-sign" ng-click="clickDeviate(price)"></i></span>
+                  <span ng-if="price.deviate" class="deviate-icon" data-placement="right" data-animation="am-flip-x" data-template-url="partials/popover/deviate.html" bs-popover="deviatePopover" data-auto-close="true">
+                    <i class="icon-info-sign" ng-click="clickDeviate(selectedSymbol, price)"></i>
+                  </span>
                 </td>
             </tr>
         </tbody>

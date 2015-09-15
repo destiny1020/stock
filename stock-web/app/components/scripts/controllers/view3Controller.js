@@ -121,7 +121,7 @@ function($scope, searchService) {
         });
     }
 
-    var deviateTargets = ['ma5', 'ma10', 'ma15', 'ma20', 'ma30'];
+    var deviateTargets = ['ma5', 'ma10', 'ma15', 'ma20', 'ma25', 'ma30'];
     function assemblePrices(records) {
         var neededPriceKeys = ['ma5', 'ma10', 'ma15', 'ma20', 'ma25', 'ma30', 'ma55', 'ma60', 'ma99', 'ma120', 'ma250', 'ma888',
                                'ema17', 'ema34', 'ema55',
@@ -137,8 +137,35 @@ function($scope, searchService) {
         }), ['price'], ['desc']);
     }
 
-    $scope.clickDeviate = function(priceObj) {
-        console.log(priceObj);
-    };
+    var regPeriod = new RegExp(/\d+$/);
+    $scope.clickDeviate = function(selectedSymbol, priceObj) {
+        var deviateName = 'd' + regPeriod.exec(priceObj.name)[0];
 
+        var searchDto = {
+            index: 'stock-tushare',
+            type: 'data-history',
+            query: {
+                'term': {
+                    'code': {
+                        'value': selectedSymbol.record.code
+                    }
+                }
+            },
+            sort: {
+                deviateName: {
+                    'order': 'desc'
+                }
+            },
+            size: 5
+        };
+
+        searchService.search(searchDto).then(function(result) {
+            console.log(result);
+        });
+
+        $scope.deviatePopover = {
+            "title": "Title",
+            "content": "Hello Popover<br />This is a multiline message!"
+        };
+    };
 }]);

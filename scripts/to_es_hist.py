@@ -129,13 +129,6 @@ df['ma120'] = pd.rolling_mean(df['close'], 120)
 df['ma250'] = pd.rolling_mean(df['close'], 250)
 df['ma888'] = pd.rolling_mean(df['close'], 888)
 
-# deviation indicators
-df['d5'] = (df['ma5'] - df['close']) / df['close']
-df['d10'] = (df['ma10'] - df['close']) / df['close']
-df['d15'] = (df['ma15'] - df['close']) / df['close']
-df['d20'] = (df['ma20'] - df['close']) / df['close']
-df['d30'] = (df['ma30'] - df['close']) / df['close']
-
 df['max5'] = pd.rolling_max(df['high'], 5)
 df['max10'] = pd.rolling_max(df['high'], 10)
 df['max20'] = pd.rolling_max(df['high'], 20)
@@ -171,6 +164,25 @@ df['bl55'] = df['ma55'] - 2 * pd.rolling_std(df['close'], 55)
 df['bu99'] = df['ma99'] + 2 * pd.rolling_std(df['close'], 99)
 df['bl99'] = df['ma99'] - 2 * pd.rolling_std(df['close'], 99)
 
+# deviation indicators
+df['deviate-ma5'] = (df['ma5'] - df['close']) / df['close'] * 100
+df['deviate-ma10'] = (df['ma10'] - df['close']) / df['close'] * 100
+df['deviate-ma15'] = (df['ma15'] - df['close']) / df['close'] * 100
+df['deviate-ma20'] = (df['ma20'] - df['close']) / df['close'] * 100
+df['deviate-ma25'] = (df['ma25'] - df['close']) / df['close'] * 100
+df['deviate-ma30'] = (df['ma30'] - df['close']) / df['close'] * 100
+
+df['deviate-ema17'] = (df['ema17'] - df['close']) / df['close'] * 100
+df['deviate-ema34'] = (df['ema34'] - df['close']) / df['close'] * 100
+df['deviate-ema55'] = (df['ema55'] - df['close']) / df['close'] * 100
+
+df['deviate-bu25'] = (df['bu25'] - df['close']) / df['close'] * 100
+df['deviate-bl25'] = (df['bl25'] - df['close']) / df['close'] * 100
+df['deviate-bu55'] = (df['bu55'] - df['close']) / df['close'] * 100
+df['deviate-bl55'] = (df['bl55'] - df['close']) / df['close'] * 100
+df['deviate-bu99'] = (df['bu99'] - df['close']) / df['close'] * 100
+df['deviate-bl99'] = (df['bl99'] - df['close']) / df['close'] * 100
+
 # macd related below
 df['ema12'] = pd.ewma(df['close'], span=12)
 df['ema26'] = pd.ewma(df['close'], span=26)
@@ -205,7 +217,7 @@ for row_index, row in df.iterrows():
     doc_id = '%s_%s' % (symbol, doc_date)
 
     # print row_index, type(row_index), row_index in df_latest.index
-    if row_index > date_field || force_update.lower() == 'true':
+    if row_index > date_field or force_update.lower() == 'true':
         doc = {
             'code': symbol,
             'date': doc_date,
@@ -215,69 +227,80 @@ for row_index, row in df.iterrows():
             'close': row['close'],
             'low': row['low'],
             'volume': row['volume'],
-            'price_change': row['price_change'] if not math.isnan(row['price_change']) else -1,
-            'p_change': row['p_change'] if not math.isnan(row['p_change']) else -1,
-            'ma5': row['ma5'] if not math.isnan(row['ma5']) else -1,
-            'ma10': row['ma10'] if not math.isnan(row['ma10']) else -1,
-            'ma15': row['ma15'] if not math.isnan(row['ma15']) else -1,
-            'ma20': row['ma20'] if not math.isnan(row['ma20']) else -1,
-            'ma25': row['ma25'] if not math.isnan(row['ma25']) else -1,
-            'ma30': row['ma30'] if not math.isnan(row['ma30']) else -1,
-            'ma55': row['ma55'] if not math.isnan(row['ma55']) else -1,
-            'ma60': row['ma60'] if not math.isnan(row['ma60']) else -1,
-            'ma99': row['ma99'] if not math.isnan(row['ma99']) else -1,
-            'ma120': row['ma120'] if not math.isnan(row['ma120']) else -1,
-            'ma250': row['ma250'] if not math.isnan(row['ma250']) else -1,
-            'ma888': row['ma888'] if not math.isnan(row['ma888']) else -1,
-            'd5': row['d5'] if not math.isnan(row['d5']) else -1,
-            'd10': row['d10'] if not math.isnan(row['d10']) else -1,
-            'd20': row['d20'] if not math.isnan(row['d20']) else -1,
-            'd30': row['d30'] if not math.isnan(row['d30']) else -1,
-            'min5': row['min5'] if not math.isnan(row['min5']) else -1,
-            'min10': row['min10'] if not math.isnan(row['min10']) else -1,
-            'min20': row['min20'] if not math.isnan(row['min20']) else -1,
-            'min25': row['min25'] if not math.isnan(row['min25']) else -1,
-            'min30': row['min30'] if not math.isnan(row['min30']) else -1,
-            'min55': row['min55'] if not math.isnan(row['min55']) else -1,
-            'min60': row['min60'] if not math.isnan(row['min60']) else -1,
-            'min99': row['min99'] if not math.isnan(row['min99']) else -1,
-            'min120': row['min120'] if not math.isnan(row['min120']) else -1,
-            'min250': row['min250'] if not math.isnan(row['min250']) else -1,
-            'min888': row['min888'] if not math.isnan(row['min888']) else -1,
-            'max5': row['max5'] if not math.isnan(row['max5']) else -1,
-            'max10': row['max10'] if not math.isnan(row['max10']) else -1,
-            'max20': row['max20'] if not math.isnan(row['max20']) else -1,
-            'max25': row['max25'] if not math.isnan(row['max25']) else -1,
-            'max30': row['max30'] if not math.isnan(row['max30']) else -1,
-            'max55': row['max55'] if not math.isnan(row['max55']) else -1,
-            'max60': row['max60'] if not math.isnan(row['max60']) else -1,
-            'max99': row['max99'] if not math.isnan(row['max99']) else -1,
-            'max120': row['max120'] if not math.isnan(row['max120']) else -1,
-            'max250': row['max250'] if not math.isnan(row['max250']) else -1,
-            'max888': row['max888'] if not math.isnan(row['max888']) else -1,
-            'ema17': row['ema17'] if not math.isnan(row['ema17']) else -1,
-            'ema34': row['ema34'] if not math.isnan(row['ema34']) else -1,
-            'ema55': row['ema55'] if not math.isnan(row['ema55']) else -1,
-            'v_ma5': row['v_ma5'] if not math.isnan(row['v_ma5']) else -1,
-            'v_ma10': row['v_ma10'] if not math.isnan(row['v_ma10']) else -1,
-            'v_ma20': row['v_ma20'] if not math.isnan(row['v_ma20']) else -1,
+            'price_change': row['price_change'] if not math.isnan(row['price_change']) else None,
+            'p_change': row['p_change'] if not math.isnan(row['p_change']) else None,
+            'ma5': row['ma5'] if not math.isnan(row['ma5']) else None,
+            'ma10': row['ma10'] if not math.isnan(row['ma10']) else None,
+            'ma15': row['ma15'] if not math.isnan(row['ma15']) else None,
+            'ma20': row['ma20'] if not math.isnan(row['ma20']) else None,
+            'ma25': row['ma25'] if not math.isnan(row['ma25']) else None,
+            'ma30': row['ma30'] if not math.isnan(row['ma30']) else None,
+            'ma55': row['ma55'] if not math.isnan(row['ma55']) else None,
+            'ma60': row['ma60'] if not math.isnan(row['ma60']) else None,
+            'ma99': row['ma99'] if not math.isnan(row['ma99']) else None,
+            'ma120': row['ma120'] if not math.isnan(row['ma120']) else None,
+            'ma250': row['ma250'] if not math.isnan(row['ma250']) else None,
+            'ma888': row['ma888'] if not math.isnan(row['ma888']) else None,
+            'deviate-ma5': row['deviate-ma5'] if not math.isnan(row['deviate-ma5']) else None,
+            'deviate-ma10': row['deviate-ma10'] if not math.isnan(row['deviate-ma10']) else None,
+            'deviate-ma15': row['deviate-ma15'] if not math.isnan(row['deviate-ma15']) else None,
+            'deviate-ma20': row['deviate-ma20'] if not math.isnan(row['deviate-ma20']) else None,
+            'deviate-ma25': row['deviate-ma25'] if not math.isnan(row['deviate-ma25']) else None,
+            'deviate-ma30': row['deviate-ma30'] if not math.isnan(row['deviate-ma30']) else None,
+            'deviate-ema17': row['deviate-ema17'] if not math.isnan(row['deviate-ema17']) else None,
+            'deviate-ema34': row['deviate-ema34'] if not math.isnan(row['deviate-ema34']) else None,
+            'deviate-ema55': row['deviate-ema55'] if not math.isnan(row['deviate-ema55']) else None,
+            'deviate-bu25': row['deviate-bu25'] if not math.isnan(row['deviate-bu25']) else None,
+            'deviate-bl25': row['deviate-bl25'] if not math.isnan(row['deviate-bl25']) else None,
+            'deviate-bu55': row['deviate-bu55'] if not math.isnan(row['deviate-bu55']) else None,
+            'deviate-bl55': row['deviate-bl55'] if not math.isnan(row['deviate-bl55']) else None,
+            'deviate-bu99': row['deviate-bu99'] if not math.isnan(row['deviate-bu99']) else None,
+            'deviate-bl99': row['deviate-bl99'] if not math.isnan(row['deviate-bl99']) else None,
+            'min5': row['min5'] if not math.isnan(row['min5']) else None,
+            'min10': row['min10'] if not math.isnan(row['min10']) else None,
+            'min20': row['min20'] if not math.isnan(row['min20']) else None,
+            'min25': row['min25'] if not math.isnan(row['min25']) else None,
+            'min30': row['min30'] if not math.isnan(row['min30']) else None,
+            'min55': row['min55'] if not math.isnan(row['min55']) else None,
+            'min60': row['min60'] if not math.isnan(row['min60']) else None,
+            'min99': row['min99'] if not math.isnan(row['min99']) else None,
+            'min120': row['min120'] if not math.isnan(row['min120']) else None,
+            'min250': row['min250'] if not math.isnan(row['min250']) else None,
+            'min888': row['min888'] if not math.isnan(row['min888']) else None,
+            'max5': row['max5'] if not math.isnan(row['max5']) else None,
+            'max10': row['max10'] if not math.isnan(row['max10']) else None,
+            'max20': row['max20'] if not math.isnan(row['max20']) else None,
+            'max25': row['max25'] if not math.isnan(row['max25']) else None,
+            'max30': row['max30'] if not math.isnan(row['max30']) else None,
+            'max55': row['max55'] if not math.isnan(row['max55']) else None,
+            'max60': row['max60'] if not math.isnan(row['max60']) else None,
+            'max99': row['max99'] if not math.isnan(row['max99']) else None,
+            'max120': row['max120'] if not math.isnan(row['max120']) else None,
+            'max250': row['max250'] if not math.isnan(row['max250']) else None,
+            'max888': row['max888'] if not math.isnan(row['max888']) else None,
+            'ema17': row['ema17'] if not math.isnan(row['ema17']) else None,
+            'ema34': row['ema34'] if not math.isnan(row['ema34']) else None,
+            'ema55': row['ema55'] if not math.isnan(row['ema55']) else None,
+            'v_ma5': row['v_ma5'] if not math.isnan(row['v_ma5']) else None,
+            'v_ma10': row['v_ma10'] if not math.isnan(row['v_ma10']) else None,
+            'v_ma20': row['v_ma20'] if not math.isnan(row['v_ma20']) else None,
             # index type has no turnover field
-            'turnover': row['turnover'] if 'turnover' in row.index and not math.isnan(row['turnover']) else -1,
-            'bl25': row['bl25'] if not math.isnan(row['bl25']) else -1,
-            'bu25': row['bu25'] if not math.isnan(row['bu25']) else -1,
-            'bl55': row['bl55'] if not math.isnan(row['bl55']) else -1,
-            'bu55': row['bu55'] if not math.isnan(row['bu55']) else -1,
-            'bl99': row['bl99'] if not math.isnan(row['bl99']) else -1,
-            'bu99': row['bu99'] if not math.isnan(row['bu99']) else -1,
-            'dif-12-26-9': row['dif-12-26-9'] if not math.isnan(row['dif-12-26-9']) else -1,
-            'dea-12-26-9': row['dea-12-26-9'] if not math.isnan(row['dea-12-26-9']) else -1,
-            'macd-12-26-9': row['macd-12-26-9'] if not math.isnan(row['macd-12-26-9']) else -1,
-            'dif-10-20-5': row['dif-10-20-5'] if not math.isnan(row['dif-10-20-5']) else -1,
-            'dea-10-20-5': row['dea-10-20-5'] if not math.isnan(row['dea-10-20-5']) else -1,
-            'macd-10-20-5': row['macd-10-20-5'] if not math.isnan(row['macd-10-20-5']) else -1,
-            'dif-9-12-6': row['dif-9-12-6'] if not math.isnan(row['dif-9-12-6']) else -1,
-            'dea-9-12-6': row['dea-9-12-6'] if not math.isnan(row['dea-9-12-6']) else -1,
-            'macd-9-12-6': row['macd-9-12-6'] if not math.isnan(row['macd-9-12-6']) else -1
+            'turnover': row['turnover'] if 'turnover' in row.index and not math.isnan(row['turnover']) else None,
+            'bl25': row['bl25'] if not math.isnan(row['bl25']) else None,
+            'bu25': row['bu25'] if not math.isnan(row['bu25']) else None,
+            'bl55': row['bl55'] if not math.isnan(row['bl55']) else None,
+            'bu55': row['bu55'] if not math.isnan(row['bu55']) else None,
+            'bl99': row['bl99'] if not math.isnan(row['bl99']) else None,
+            'bu99': row['bu99'] if not math.isnan(row['bu99']) else None,
+            'dif-12-26-9': row['dif-12-26-9'] if not math.isnan(row['dif-12-26-9']) else None,
+            'dea-12-26-9': row['dea-12-26-9'] if not math.isnan(row['dea-12-26-9']) else None,
+            'macd-12-26-9': row['macd-12-26-9'] if not math.isnan(row['macd-12-26-9']) else None,
+            'dif-10-20-5': row['dif-10-20-5'] if not math.isnan(row['dif-10-20-5']) else None,
+            'dea-10-20-5': row['dea-10-20-5'] if not math.isnan(row['dea-10-20-5']) else None,
+            'macd-10-20-5': row['macd-10-20-5'] if not math.isnan(row['macd-10-20-5']) else None,
+            'dif-9-12-6': row['dif-9-12-6'] if not math.isnan(row['dif-9-12-6']) else None,
+            'dea-9-12-6': row['dea-9-12-6'] if not math.isnan(row['dea-9-12-6']) else None,
+            'macd-9-12-6': row['macd-9-12-6'] if not math.isnan(row['macd-9-12-6']) else None
         }
         # print type(row_index), row_index, '%s_%d-%02d-%02d' % (symbol, row_index.year, row_index.month, row_index.day)
         res = es.index(index="stock-tushare", doc_type='data-history', id=doc_id ,body=doc)
