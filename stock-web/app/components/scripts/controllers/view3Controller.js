@@ -130,8 +130,8 @@ function($scope, searchService) {
             return {
                 name: key.toUpperCase(),
                 price: value,
-                percentageToClose: (value - records['close']) / records['close'] * 100
-            }
+                percentageToClose: (value - records.close) / records.close * 100
+            };
         }), ['price'], ['desc']);
     }
 
