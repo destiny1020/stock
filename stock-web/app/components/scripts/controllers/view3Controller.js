@@ -137,9 +137,10 @@ function($scope, searchService) {
         }), ['price'], ['desc']);
     }
 
-    var regPeriod = new RegExp(/\d+$/);
+    // var regPeriod = new RegExp(/\d+$/);
+    var topSize = 10;
     $scope.clickDeviate = function(selectedSymbol, priceObj) {
-        var deviateName = 'd' + regPeriod.exec(priceObj.name)[0];
+        var deviateName = 'deviate-' + priceObj.name.toLowerCase();
 
         var searchDto = {
             index: 'stock-tushare',
@@ -151,21 +152,20 @@ function($scope, searchService) {
                     }
                 }
             },
-            sort: {
-                deviateName: {
-                    'order': 'desc'
-                }
-            },
-            size: 5
+            size: topSize
         };
+
+        searchDto.sort = {};
+        searchDto.sort[deviateName] = { 'order': 'desc' };
 
         searchService.search(searchDto).then(function(result) {
-            console.log(result);
+            $scope.deviatePopover = {
+                'title': priceObj.name + ' - 乖离率 TOP' + topSize,
+                'content': result.records,
+                'key': deviateName,
+                'currentDate': selectedSymbol.record.date,
+                'container': 'body'
+            };
         });
-
-        $scope.deviatePopover = {
-            "title": "Title",
-            "content": "Hello Popover<br />This is a multiline message!"
-        };
     };
 }]);
