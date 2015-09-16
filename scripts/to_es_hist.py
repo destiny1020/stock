@@ -111,6 +111,14 @@ df['period_type'] = 'D'
 df['p_change'] = df['close'] / df['close'].shift(1) - 1
 df['price_change'] = df['close'] - df['close'].shift(1)
 
+df['p_change2'] = df['close'] / df['close'].shift(2) - 1
+df['p_change3'] = df['close'] / df['close'].shift(3) - 1
+df['p_change5'] = df['close'] / df['close'].shift(5) - 1
+df['p_change10'] = df['close'] / df['close'].shift(10) - 1
+df['p_change15'] = df['close'] / df['close'].shift(15) - 1
+df['p_change20'] = df['close'] / df['close'].shift(20) - 1
+df['p_change30'] = df['close'] / df['close'].shift(30) - 1
+
 # volume related
 df['v_ma5'] = pd.rolling_mean(df['volume'], 5)
 df['v_ma10'] = pd.rolling_mean(df['volume'], 10)
@@ -229,6 +237,13 @@ for row_index, row in df.iterrows():
             'volume': row['volume'],
             'price_change': row['price_change'] if not math.isnan(row['price_change']) else None,
             'p_change': row['p_change'] if not math.isnan(row['p_change']) else None,
+            'p_change2': row['p_change2'] if not math.isnan(row['p_change2']) else None,
+            'p_change3': row['p_change3'] if not math.isnan(row['p_change3']) else None,
+            'p_change5': row['p_change5'] if not math.isnan(row['p_change5']) else None,
+            'p_change10': row['p_change10'] if not math.isnan(row['p_change10']) else None,
+            'p_change15': row['p_change15'] if not math.isnan(row['p_change15']) else None,
+            'p_change20': row['p_change20'] if not math.isnan(row['p_change20']) else None,
+            'p_change30': row['p_change30'] if not math.isnan(row['p_change30']) else None,
             'ma5': row['ma5'] if not math.isnan(row['ma5']) else None,
             'ma10': row['ma10'] if not math.isnan(row['ma10']) else None,
             'ma15': row['ma15'] if not math.isnan(row['ma15']) else None,
