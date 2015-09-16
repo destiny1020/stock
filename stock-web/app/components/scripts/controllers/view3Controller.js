@@ -121,7 +121,9 @@ function($scope, searchService) {
         });
     }
 
-    var deviateTargets = ['ma5', 'ma10', 'ma15', 'ma20', 'ma25', 'ma30'];
+    var deviateTargets = ['ma5', 'ma10', 'ma15', 'ma20', 'ma25', 'ma30',
+                          'ema17', 'ema34', 'ema55',
+                          'bu25', 'bl25', 'bu55', 'bl55', 'bu99', 'bl99'];
     function assemblePrices(records) {
         var neededPriceKeys = ['ma5', 'ma10', 'ma15', 'ma20', 'ma25', 'ma30', 'ma55', 'ma60', 'ma99', 'ma120', 'ma250', 'ma888',
                                'ema17', 'ema34', 'ema55',
