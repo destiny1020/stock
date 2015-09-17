@@ -32,11 +32,15 @@ public class Exporter {
    * @throws InterruptedException 
    */
   private static void exportToESCore(String symbol, String startDay, String endDay,
-      boolean isHistory) throws IOException, InterruptedException {
+      boolean isHistory, boolean forceUpdate) throws IOException, InterruptedException {
     String scriptDest =
         isHistory ? "python E:\\Code\\STS\\workspace-sts-3.6.4.RELEASE\\stock\\scripts\\to_es_hist.py "
             : "python E:\\Code\\STS\\workspace-sts-3.6.4.RELEASE\\stock\\scripts\\to_es.py ";
-    Process proc = Runtime.getRuntime().exec(scriptDest + symbol + " " + startDay + " " + endDay);
+    String command = scriptDest + symbol + " " + startDay + " " + endDay;
+    if (forceUpdate) {
+      command += " true";
+    }
+    Process proc = Runtime.getRuntime().exec(command);
     proc.waitFor();
   }
 
@@ -66,7 +70,8 @@ public class Exporter {
    * @throws InterruptedException
    * @throws ParseException
    */
-  public static void exportToES() throws IOException, InterruptedException, ParseException {
+  public static void exportToES(boolean forceUpdate) throws IOException, InterruptedException,
+      ParseException {
     // TODO: configurable
     String endDate = "2015-12-31";
 
@@ -91,7 +96,7 @@ public class Exporter {
       String target = symbol.substring(2);
       System.out.println(String.format("Exporting Daily %s into ES for %s --- %s", symbol,
           startDate, endDate));
-      exportToESCore(target, startDate, endDate, false);
+      exportToESCore(target, startDate, endDate, false, forceUpdate);
     }
 
     node.close();
@@ -104,9 +109,11 @@ public class Exporter {
    * @throws InterruptedException
    * @throws ParseException
    */
-  public static void exportHistoryToES() throws IOException, InterruptedException, ParseException {
+  public static void exportHistoryToES(boolean forceUpdate, boolean rewriteAll) throws IOException,
+      InterruptedException, ParseException {
     // TODO: configurable
     String endDate = "2015-12-31";
+    String startDate = "2000-01-01";
 
     Node node = ElasticsearchUtils.getNode();
     Client client = node.client();
@@ -117,27 +124,31 @@ public class Exporter {
     for (String symbol : symbolToNamesMap.keySet()) {
       String target = symbol.substring(2);
 
-      // first retrieve the last available date
-      String maxDateStr =
-          ElasticsearchCommons.getMaxOrMinFieldValueWithTermCriteria(client,
-              ElasticsearchConsts.TUSHARE_INDEX, ElasticsearchConsts.TUSHARE_TYPE_HISTORY, "date",
-              "code", target, SortOrder.DESC);
-      if (StringUtils.isBlank(maxDateStr)) {
-        maxDateStr = "1999-12-31";
-      }
+      if (!rewriteAll) {
+        // first retrieve the last available date
+        String maxDateStr =
+            ElasticsearchCommons.getMaxOrMinFieldValueWithTermCriteria(client,
+                ElasticsearchConsts.TUSHARE_INDEX, ElasticsearchConsts.TUSHARE_TYPE_HISTORY,
+                "date", "code", target, SortOrder.DESC);
+        if (StringUtils.isBlank(maxDateStr)) {
+          maxDateStr = "1999-12-31";
+        }
 
-      LocalDate maxDate = LocalDate.parse(maxDateStr);
-      String startDate = maxDate.plusDays(1).toString();
+        LocalDate maxDate = LocalDate.parse(maxDateStr);
+        startDate = maxDate.plusDays(1).toString();
+      }
 
       System.out.println(String.format("Exporting History %s into ES for %s --- %s", symbol,
           startDate, endDate));
-      exportToESCore(target, startDate, endDate, true);
+
+      exportToESCore(target, startDate, endDate, true, forceUpdate);
     }
 
     node.close();
   }
 
   public static void main(String[] args) throws IOException, InterruptedException, ParseException {
-    exportHistoryToES();
+    // force update all the index
+    exportHistoryToES(true, true);
   }
 }
