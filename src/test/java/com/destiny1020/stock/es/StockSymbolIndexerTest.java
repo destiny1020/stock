@@ -69,6 +69,14 @@ public class StockSymbolIndexerTest extends ESTestBase {
       }
     }
 
+    // Add index symbols
+    symbols.add(new StockSymbol("SH000001", "上证指数"));
+    symbols.add(new StockSymbol("SH000300", "沪深300"));
+    symbols.add(new StockSymbol("SH000016", "上证50"));
+    symbols.add(new StockSymbol("SZ399001", "深证成指"));
+    symbols.add(new StockSymbol("SZ399005", "中小板指"));
+    symbols.add(new StockSymbol("SZ399006", "创业板指"));
+
     StockSymbolIndexer.reindexStockSymbols(client, symbols);
   }
 
