@@ -39,6 +39,8 @@ public class Exporter {
     String command = scriptDest + symbol + " " + startDay + " " + endDay;
     if (forceUpdate) {
       command += " true";
+    } else {
+      command += " false";
     }
     Process proc = Runtime.getRuntime().exec(command);
     proc.waitFor();
@@ -121,6 +123,7 @@ public class Exporter {
     // retrieve all symbols
     Map<String, String> symbolToNamesMap = ElasticsearchCommons.getSymbolToNamesMap(client);
 
+    int idx = 1;
     for (String symbol : symbolToNamesMap.keySet()) {
       String target = symbol.substring(2);
 
@@ -138,8 +141,8 @@ public class Exporter {
         startDate = maxDate.plusDays(1).toString();
       }
 
-      System.out.println(String.format("Exporting History %s into ES for %s --- %s", symbol,
-          startDate, endDate));
+      System.out.println(String.format("%d: Exporting History %s into ES for %s --- %s", idx++,
+          symbol, startDate, endDate));
 
       exportToESCore(target, startDate, endDate, true, forceUpdate);
     }
@@ -148,7 +151,11 @@ public class Exporter {
   }
 
   public static void main(String[] args) throws IOException, InterruptedException, ParseException {
-    // force update all the index
-    exportHistoryToES(true, true);
+    long startMillis = System.currentTimeMillis();
+    exportHistoryToES(false, false);
+    long endMillis = System.currentTimeMillis();
+    System.out.println(String.format(
+        "Finished batch execution for importing history data in: %.2f Seconds",
+        (endMillis - startMillis) / 1000.0));
   }
 }
