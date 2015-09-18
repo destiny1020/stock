@@ -15,4 +15,4 @@ example/
 *.log
 logs/
 LOG_FILE_IS_UNDEFINED
-stock-web/backend/db.json
+stock-web/backend/db/db.json
