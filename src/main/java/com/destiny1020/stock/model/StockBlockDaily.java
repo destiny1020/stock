@@ -3,7 +3,6 @@ package com.destiny1020.stock.model;
 import java.math.BigDecimal;
 
 import com.destiny1020.stock.es.IEsIDEntity;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 
 /**
  * Represents the individual stock information under its belonging block.
@@ -369,7 +368,6 @@ public class StockBlockDaily extends ESEntity implements IEsIDEntity {
     this.totalMarketCapital = totalMarketCapital;
   }
 
-  @JsonIgnore
   @Override
   public String getEsID() {
     return symbol;
