@@ -4,13 +4,21 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 
 import com.destiny1020.stock.es.IEsIDEntity;
 
 @Entity
 @Table(name = "symbol")
+@NamedQueries({@NamedQuery(name = StockSymbol.FIND_BY_SYMBOL,
+    query = StockSymbol.FIND_BY_SYMBOL_SQL)})
 public class StockSymbol implements IEsIDEntity {
+
+  public static final String FIND_BY_SYMBOL = "findStockSymbolBySymbol";
+  public static final String FIND_BY_SYMBOL_SQL =
+      "select s from StockSymbol s where s.symbol = :symbol";
 
   @Id
   @GeneratedValue

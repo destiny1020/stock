@@ -20,10 +20,10 @@ import com.destiny1020.stock.es.ElasticsearchUtils;
  * @author destiny1020
  *
  */
-public class Exporter {
+public class ToElasticearchExporter {
 
   /**
-   * Export history data into MYSQL.
+   * Export history data into ES.
    * 
    * @param symbol
    * @param startDay

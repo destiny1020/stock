@@ -18,5 +18,7 @@ public class MySQLLoadTest extends DBConfigBase {
     // load symbol data
 
   }
+  
+  @Te
 
 }
