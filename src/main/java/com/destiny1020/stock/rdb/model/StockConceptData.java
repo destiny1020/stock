@@ -1,4 +1,4 @@
-package com.destiny1020.stock.rdb;
+package com.destiny1020.stock.rdb.model;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;

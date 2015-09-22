@@ -7,7 +7,7 @@ public class ToMySQLExporter {
 
   public static void main(String[] args) throws IOException, InterruptedException, ParseException {
     long startMillis = System.currentTimeMillis();
-    exportHistoryToMySQL(false, false);
+    exportHistoryToMySQL("");
     long endMillis = System.currentTimeMillis();
     System.out.println(String.format(
         "Finished batch execution for importing history data in: %.2f Seconds",
