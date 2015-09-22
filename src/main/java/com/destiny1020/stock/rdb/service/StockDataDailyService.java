@@ -35,7 +35,12 @@ public class StockDataDailyService {
         em.createNamedQuery(StockDataDaily.FIND_MAX_DATE_BY_CODE, Date.class)
             .setParameter("code", code).getSingleResult();
 
-    return DateUtil.convertToString(maxDate);
+
+    return DateUtil.getNextDate(maxDate);
+  }
+
+  public static void main(String[] args) {
+    System.out.println(StockDataDailyService.INSTANCE.latestDate("600886"));
   }
 
 }

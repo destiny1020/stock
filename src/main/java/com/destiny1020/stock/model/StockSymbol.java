@@ -12,11 +12,14 @@ import com.destiny1020.stock.es.IEsIDEntity;
 
 @Entity
 @Table(name = "symbol")
-@NamedQueries({@NamedQuery(name = StockSymbol.FIND_BY_SYMBOL,
-    query = StockSymbol.FIND_BY_SYMBOL_SQL)})
+@NamedQueries({@NamedQuery(name = StockSymbol.FIND_ALL, query = StockSymbol.FIND_ALL_SQL),
+    @NamedQuery(name = StockSymbol.FIND_BY_SYMBOL, query = StockSymbol.FIND_BY_SYMBOL_SQL)})
 public class StockSymbol implements IEsIDEntity {
 
-  public static final String FIND_BY_SYMBOL = "findStockSymbolBySymbol";
+  public static final String FIND_ALL = "StockSymbol.findAll";
+  public static final String FIND_ALL_SQL = "select s from StockSymbol s";
+
+  public static final String FIND_BY_SYMBOL = "StockSymbol.findBySymbol";
   public static final String FIND_BY_SYMBOL_SQL =
       "select s from StockSymbol s where s.symbol = :symbol";
 
