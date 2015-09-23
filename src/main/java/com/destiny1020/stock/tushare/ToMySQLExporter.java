@@ -2,6 +2,7 @@ package com.destiny1020.stock.tushare;
 
 import java.io.IOException;
 import java.text.ParseException;
+import java.util.List;
 
 import com.destiny1020.stock.model.StockSymbol;
 import com.destiny1020.stock.rdb.service.StockDataDailyService;
@@ -10,16 +11,23 @@ import com.destiny1020.stock.rdb.service.StockSymbolService;
 public class ToMySQLExporter {
 
   public static void main(String[] args) throws IOException, InterruptedException, ParseException {
-    StockSymbol symbol = StockSymbolService.INSTANCE.getSymbol("SH600891");
+    List<StockSymbol> symbols = StockSymbolService.INSTANCE.getSymbols();
 
-    if (symbol != null) {
-      long startMillis = System.currentTimeMillis();
-      exportHistoryToMySQL(symbol);
-      long endMillis = System.currentTimeMillis();
-      System.out.println(String.format(
-          "Finished batch execution for importing history data in: %.2f Seconds",
-          (endMillis - startMillis) / 1000.0));
-    }
+    long startMillis = System.currentTimeMillis();
+    symbols.forEach(symbol -> {
+      if (symbol != null && symbol.isNotCYB()) {
+        try {
+          exportHistoryToMySQL(symbol);
+        } catch (Exception e) {
+          System.err.println(e.getMessage());
+          e.printStackTrace();
+        }
+      }
+    });
+    long endMillis = System.currentTimeMillis();
+    System.out.println(String.format(
+        "Finished batch execution for importing history data in: %.2f Seconds",
+        (endMillis - startMillis) / 1000.0));
   }
 
   /**
@@ -37,7 +45,7 @@ public class ToMySQLExporter {
     String startDate = StockDataDailyService.INSTANCE.latestDate(symbol.getCode());
 
     // step 2: execute the script
-    System.out.println(String.format("Exporting Daily %s into ES for %s --- %s", symbol.getCode(),
+    System.out.println(String.format("Exporting Daily %s into DB for %s --- %s", symbol.getCode(),
         startDate, endDate));
     exportToMySQLCore(symbol.getCode(), startDate, endDate);
   }

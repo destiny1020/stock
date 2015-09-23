@@ -94,4 +94,8 @@ public class StockSymbol implements IEsIDEntity {
     this.code = code;
   }
 
+  public boolean isNotCYB() {
+    return !code.startsWith("30");
+  }
+
 }
