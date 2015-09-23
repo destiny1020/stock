@@ -58,7 +58,13 @@ else:
 # process the data to add additional cols
 # print df.index
 
-df['date_only'] = df.index.str.split(' ').str[0] # only save the date part
+# only save the date part
+if type(df.index) == pd.tseries.index.DatetimeIndex:
+    pdt = df.index.to_pydatetime()
+    sdt = np.vectorize(lambda s: s.strftime('%Y-%m-%d'))(pdt)
+    df['date_only'] = sdt
+else:
+    df['date_only'] = df.index.str.split(' ').str[0]
 
 df['code'] = symbol
 df['period_type'] = 'M60'
@@ -182,4 +188,4 @@ if 'id' in df.columns:
 if not np.isnan(last_sequence_id):
     df = df[df['sequence'] > int(last_sequence_id)]
 
-df.to_sql('data_60min', engine, if_exists='append')
+df.to_sql('data_60min', engine, if_exists='append', index='date')
