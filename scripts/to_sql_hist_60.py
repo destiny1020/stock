@@ -13,23 +13,18 @@ end = sys.argv[3]
 # convert symbol to code
 
 
-df_latest = ts.get_h_data(symbol, start=start, end=end)
+df_latest = ts.get_hist_data(symbol, start=start, end=end, ktype='60')
+
+# print df_latest.index
 
 if type(df_latest) is types.NoneType or df_latest.size == 0:
     print '%s is not a valid symbol or no available data' % symbol 
     sys.exit(0)
 
-
-df_latest = df_latest.sort_index()
-
-# convert index date to unicode representation
-df_latest = df_latest.reset_index()
-df_latest = df_latest.set_index('date')
-    
 # retrieve the current data
 engine = create_engine('mysql+pymysql://root:adobe@127.0.0.1/tushare?charset=utf8')
 try:
-    df_previous = pd.read_sql_query('select * from data_daily where code = ' + symbol + ' order by sequence', engine, index_col='date', parse_dates=['date'])
+    df_previous = pd.read_sql_query('select * from data_60min where code = ' + symbol + ' order by sequence', engine, index_col='date')
     if df_previous.size == 0:
         no_previous_data = True
     else:
@@ -45,6 +40,9 @@ if not no_previous_data:
             df_previous = df_previous.append(row)
     df = df_previous
 
+    # since the index for thedata retrieved from ts is of type unicode, need to convert to datetime for sorting
+    df.index = pd.DatetimeIndex(df.index)
+
     # reorder by date
     df = df.sort_index()
 
@@ -58,8 +56,12 @@ else:
 # print df, date_field
 
 # process the data to add additional cols
+# print df.index
+
+df['date_only'] = df.index.str.split(' ').str[0] # only save the date part
+
 df['code'] = symbol
-df['period_type'] = 'D'
+df['period_type'] = 'M60'
 
 # percentage change
 df['p_change'] = df['close'] / df['close'].shift(1) - 1
@@ -89,7 +91,7 @@ df['ma60'] = pd.rolling_mean(df['close'], 60)
 df['ma99'] = pd.rolling_mean(df['close'], 99)
 df['ma120'] = pd.rolling_mean(df['close'], 120)
 df['ma250'] = pd.rolling_mean(df['close'], 250)
-df['ma888'] = pd.rolling_mean(df['close'], 888)
+# df['ma888'] = pd.rolling_mean(df['close'], 888)
 
 df['max5'] = pd.rolling_max(df['high'], 5)
 df['max10'] = pd.rolling_max(df['high'], 10)
@@ -101,7 +103,7 @@ df['max60'] = pd.rolling_max(df['high'], 60)
 df['max99'] = pd.rolling_max(df['high'], 99)
 df['max120'] = pd.rolling_max(df['high'], 120)
 df['max250'] = pd.rolling_max(df['high'], 250)
-df['max888'] = pd.rolling_max(df['high'], 888)
+# df['max888'] = pd.rolling_max(df['high'], 888)
 
 df['min5'] = pd.rolling_min(df['low'], 5)
 df['min10'] = pd.rolling_min(df['low'], 10)
@@ -113,7 +115,7 @@ df['min60'] = pd.rolling_min(df['low'], 60)
 df['min99'] = pd.rolling_min(df['low'], 99)
 df['min120'] = pd.rolling_min(df['low'], 120)
 df['min250'] = pd.rolling_min(df['low'], 250)
-df['min888'] = pd.rolling_min(df['low'], 888)
+# df['min888'] = pd.rolling_min(df['low'], 888)
 
 df['ema17'] = pd.ewma(df['close'], span=17)
 df['ema34'] = pd.ewma(df['close'], span=34)
@@ -180,4 +182,4 @@ if 'id' in df.columns:
 if not np.isnan(last_sequence_id):
     df = df[df['sequence'] > int(last_sequence_id)]
 
-df.to_sql('data_daily', engine, if_exists='append', index_label='date')
+df.to_sql('data_60min', engine, if_exists='append')

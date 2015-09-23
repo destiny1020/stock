@@ -10,7 +10,7 @@ import com.destiny1020.stock.rdb.service.StockSymbolService;
 public class ToMySQLExporter {
 
   public static void main(String[] args) throws IOException, InterruptedException, ParseException {
-    StockSymbol symbol = StockSymbolService.INSTANCE.getSymbol("SH600886");
+    StockSymbol symbol = StockSymbolService.INSTANCE.getSymbol("SH600891");
 
     if (symbol != null) {
       long startMillis = System.currentTimeMillis();
