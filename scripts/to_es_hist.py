@@ -65,6 +65,9 @@ try:
             ],
             "size": 1000
         })
+    df_previous_count = res['hits']['total']
+    if df_previous_count == 0:
+        esNoData = True
 except:
     esNoData = True
 
