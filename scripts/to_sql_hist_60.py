@@ -10,9 +10,6 @@ symbol = sys.argv[1]
 start = sys.argv[2]
 end = sys.argv[3]
 
-# convert symbol to code
-
-
 df_latest = ts.get_hist_data(symbol, start=start, end=end, ktype='60')
 
 # print df_latest.index

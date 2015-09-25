@@ -10,9 +10,6 @@ symbol = sys.argv[1]
 start = sys.argv[2]
 end = sys.argv[3]
 
-# convert symbol to code
-
-
 df_latest = ts.get_h_data(symbol, start=start, end=end)
 
 if type(df_latest) is types.NoneType or df_latest.size == 0:
