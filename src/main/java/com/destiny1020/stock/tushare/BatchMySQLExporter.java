@@ -5,10 +5,12 @@ import java.text.ParseException;
 import java.util.List;
 
 import com.destiny1020.stock.model.StockSymbol;
+import com.destiny1020.stock.rdb.model.PeriodType;
+import com.destiny1020.stock.rdb.service.StockData60MinService;
 import com.destiny1020.stock.rdb.service.StockDataDailyService;
 import com.destiny1020.stock.rdb.service.StockSymbolService;
 
-public class ToMySQLExporter {
+public class BatchMySQLExporter {
 
   public static void main(String[] args) throws IOException, InterruptedException, ParseException {
     List<StockSymbol> symbols = StockSymbolService.INSTANCE.getSymbols();
@@ -28,6 +30,8 @@ public class ToMySQLExporter {
     System.out.println(String.format(
         "Finished batch execution for importing history data in: %.2f Seconds",
         (endMillis - startMillis) / 1000.0));
+
+    System.exit(0);
   }
 
   /**
@@ -41,20 +45,24 @@ public class ToMySQLExporter {
       IOException {
     String endDate = "2015-12-31";
 
-    // step 1: find the latest available date
+    // step 1: find the latest available date --- daily
     String startDate = StockDataDailyService.INSTANCE.latestDate(symbol.getCode());
 
-    // step 2: execute the script
-    System.out.println(String.format("Exporting Daily %s into DB for %s --- %s", symbol.getCode(),
-        startDate, endDate));
-    exportToMySQLCore(symbol.getCode(), startDate, endDate);
+    // step 2: execute the script --- daily
+    exportToMySQLCore(PeriodType.D, symbol.getCode(), startDate, endDate);
+
+    // step 3: find the latest available date --- 60 minutes
+    startDate = StockData60MinService.INSTANCE.latestDate(symbol.getCode());
+
+    // step 4: execute the script --- 60 minutes
+    exportToMySQLCore(PeriodType.M60, symbol.getCode(), startDate, endDate);
   }
 
-  private static void exportToMySQLCore(String symbol, String startDate, String endDate)
+  private static void exportToMySQLCore(PeriodType pt, String code, String startDate, String endDate)
       throws InterruptedException, IOException {
-    String scriptDest =
-        "python E:\\Code\\STS\\workspace-sts-3.6.4.RELEASE\\stock\\scripts\\to_sql_hist.py ";
-    String command = scriptDest + symbol + " " + startDate + " " + endDate;
+    String command = pt.getScriptDest() + code + " " + startDate + " " + endDate;
+    System.out.println(String.format("Exporting %s %s into DB for %s --- %s", pt.getExplain(),
+        code, startDate, endDate));
     Process proc = Runtime.getRuntime().exec(command);
     proc.waitFor();
   }
