@@ -6,6 +6,8 @@ import java.util.List;
 
 import com.destiny1020.stock.model.StockSymbol;
 import com.destiny1020.stock.rdb.model.PeriodType;
+import com.destiny1020.stock.rdb.service.StockData15MinService;
+import com.destiny1020.stock.rdb.service.StockData30MinService;
 import com.destiny1020.stock.rdb.service.StockData60MinService;
 import com.destiny1020.stock.rdb.service.StockDataDailyService;
 import com.destiny1020.stock.rdb.service.StockSymbolService;
@@ -44,9 +46,10 @@ public class BatchMySQLExporter {
   public static void exportHistoryToMySQL(StockSymbol symbol) throws InterruptedException,
       IOException {
     String endDate = "2015-12-31";
+    String startDate = "2000-01-01";
 
     // step 1: find the latest available date --- daily
-    String startDate = StockDataDailyService.INSTANCE.latestDate(symbol.getCode());
+    startDate = StockDataDailyService.INSTANCE.latestDate(symbol.getCode());
 
     // step 2: execute the script --- daily
     exportToMySQLCore(PeriodType.D, symbol.getCode(), startDate, endDate);
@@ -56,6 +59,18 @@ public class BatchMySQLExporter {
 
     // step 4: execute the script --- 60 minutes
     exportToMySQLCore(PeriodType.M60, symbol.getCode(), startDate, endDate);
+
+    //     step 5: find the latest available date --- 30 minutes
+    startDate = StockData30MinService.INSTANCE.latestDate(symbol.getCode());
+
+    // step 6: execute the script --- 30 minutes
+    exportToMySQLCore(PeriodType.M30, symbol.getCode(), startDate, endDate);
+
+    // step 7: find the latest available date --- 15 minutes
+    startDate = StockData15MinService.INSTANCE.latestDate(symbol.getCode());
+
+    // step 8: execute the script --- 15 minutes
+    exportToMySQLCore(PeriodType.M15, symbol.getCode(), startDate, endDate);
   }
 
   private static void exportToMySQLCore(PeriodType pt, String code, String startDate, String endDate)
