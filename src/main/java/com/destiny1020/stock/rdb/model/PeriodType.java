@@ -8,7 +8,9 @@ public enum PeriodType {
       "30 Minutes",
       "python E:\\Code\\STS\\workspace-sts-3.6.4.RELEASE\\stock\\scripts\\to_sql_hist_30.py "), M15(
       "15 Minutes",
-      "python E:\\Code\\STS\\workspace-sts-3.6.4.RELEASE\\stock\\scripts\\to_sql_hist_15.py ");
+      "python E:\\Code\\STS\\workspace-sts-3.6.4.RELEASE\\stock\\scripts\\to_sql_hist_15.py "), W(
+      "Weekly",
+      "python E:\\Code\\STS\\workspace-sts-3.6.4.RELEASE\\stock\\scripts\\to_sql_hist_week.py ");
 
   private String explain;
   private String scriptDest;

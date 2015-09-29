@@ -10,6 +10,7 @@ import com.destiny1020.stock.rdb.service.StockData15MinService;
 import com.destiny1020.stock.rdb.service.StockData30MinService;
 import com.destiny1020.stock.rdb.service.StockData60MinService;
 import com.destiny1020.stock.rdb.service.StockDataDailyService;
+import com.destiny1020.stock.rdb.service.StockDataWeekService;
 import com.destiny1020.stock.rdb.service.StockSymbolService;
 
 public class BatchMySQLExporter {
@@ -71,6 +72,12 @@ public class BatchMySQLExporter {
 
     // step 8: execute the script --- 15 minutes
     exportToMySQLCore(PeriodType.M15, symbol.getCode(), startDate, endDate);
+
+    // step 9: find the latest available date --- week
+    startDate = StockDataWeekService.INSTANCE.latestDate(symbol.getCode());
+
+    // step 10: execute the script --- week
+    exportToMySQLCore(PeriodType.W, symbol.getCode(), startDate, endDate);
   }
 
   private static void exportToMySQLCore(PeriodType pt, String code, String startDate, String endDate)
