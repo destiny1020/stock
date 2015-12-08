@@ -4,8 +4,8 @@
 var app = angular.module('hgsys');
 
 // view1 controller
-app.controller('View3Ctrl', ['$scope', 'searchService',
-function($scope, searchService) {
+app.controller('View3Ctrl', ['$scope', 'searchService', 'mysqlService',
+function($scope, searchService, mysqlService) {
 
     $scope.selectedSymbols = [];
     // $scope.autocomplete = function(symbol) {
@@ -92,31 +92,13 @@ function($scope, searchService) {
         // default to search the last trading day
         var symbol = symbolObj.symbol.substring(2);
 
-        var searchDto = {
-            index: 'stock-tushare',
-            type: 'data-history',
-            query: {
-                'term': {
-                    'code': {
-                        'value': symbol
-                    }
-                }
-            },
-            sort: {
-                'date': {
-                    'order': 'desc'
-                }
-            },
-            size: 1
-        };
-
-        searchService.search(searchDto).then(function(result) {
-            if(result.records && result.records.length === 1) {
+        mysqlService.daily(symbol).then(function(result) {
+            if(result && result.data) {
                 $scope.detailReady = true;
-                $scope.selectedSymbol.record = result.records[0];
+                $scope.selectedSymbol.record = result.data;
 
                 // assemble the sensible prices
-                $scope.selectedSymbol.sensiblePrices = assemblePrices(result.records[0]);
+                $scope.selectedSymbol.sensiblePrices = assemblePrices(result.data);
             }
         });
     }
