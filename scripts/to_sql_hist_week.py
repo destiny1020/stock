@@ -1,10 +1,11 @@
 import sys
 import types
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, delete
 import tushare as ts
 import pandas as pd
 from datetime import datetime, date
 import numpy as np
+import dateutil.parser
 
 symbol = sys.argv[1]
 start = sys.argv[2]
@@ -30,11 +31,28 @@ except:
     no_previous_data = True
 
 if not no_previous_data:
+    # check whether the last previous record is within the same week as the first latest record
+    last_previous_date = datetime.combine(df_previous.tail(1).index[0], datetime.min.time())
+    first_latest_date = dateutil.parser.parse(df_latest.head(1).index[0])
+    days_off = (first_latest_date - last_previous_date).days
+
+    if days_off <= 0:
+        print 'last_previous_date: %s and first_latest_date: $s --- error' % (last_previous_date, first_latest_date)
+        sys.exit(0)
+
+    if last_previous_date.weekday() < first_latest_date.weekday() and days_off < 7:
+        df_previous = df_previous.ix[:-1]
+
+        # remove the corresponding db row
+        with engine.begin() as conn:
+            conn.execute('DELETE FROM data_week WHERE DATE = \'%s\' AND CODE = \'%s\'' % (last_previous_date.strftime('%Y-%m-%d'), symbol))
+
     # check duplicates
     last_sequence_id = df_previous.tail(1)['sequence'].ix[0]
     for row_index, row in df_latest.iterrows():
         if row_index not in df_previous.index:
             df_previous = df_previous.append(row)
+
     df = df_previous
 
     # since the index for thedata retrieved from ts is of type unicode, need to convert to datetime for sorting
