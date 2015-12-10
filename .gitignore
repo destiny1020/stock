@@ -16,3 +16,4 @@ example/
 logs/
 LOG_FILE_IS_UNDEFINED
 stock-web/backend/db/db.json
+scripts/**/*.png
