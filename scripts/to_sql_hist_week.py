@@ -1,6 +1,6 @@
 import sys
 import types
-from sqlalchemy import create_engine, delete
+from sqlalchemy import create_engine
 import tushare as ts
 import pandas as pd
 from datetime import datetime, date
