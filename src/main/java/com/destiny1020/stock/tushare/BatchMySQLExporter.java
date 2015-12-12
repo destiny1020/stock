@@ -16,7 +16,7 @@ import com.destiny1020.stock.rdb.service.StockSymbolService;
 public class BatchMySQLExporter {
 
   public static void main(String[] args) throws IOException, InterruptedException, ParseException {
-    List<StockSymbol> symbols = StockSymbolService.INSTANCE.getSymbols();
+    List<StockSymbol> symbols = StockSymbolService.INSTANCE.getAllSymbols();
 
     long startMillis = System.currentTimeMillis();
     symbols.forEach(symbol -> {
@@ -61,7 +61,7 @@ public class BatchMySQLExporter {
     // step 4: execute the script --- 60 minutes
     exportToMySQLCore(PeriodType.M60, symbol.getCode(), startDate, endDate);
 
-    //     step 5: find the latest available date --- 30 minutes
+    // step 5: find the latest available date --- 30 minutes
     startDate = StockData30MinService.INSTANCE.latestDate(symbol.getCode());
 
     // step 6: execute the script --- 30 minutes

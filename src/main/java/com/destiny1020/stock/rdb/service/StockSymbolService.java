@@ -29,11 +29,21 @@ public class StockSymbolService {
   }
 
   /**
-   * Get all available symbols.
+   * Get symbol instances by symbol name strings.
+   * 
+   * @param symbols
+   * @return
+   */
+  public List<StockSymbol> getSymbols(List<String> symbols) {
+    return em.createNamedQuery(StockSymbol.FIND_BY_SYMBOLS, StockSymbol.class)
+        .setParameter("symbols", symbols).getResultList();
+  }
+
+  /**
    * 
    * @return
    */
-  public List<StockSymbol> getSymbols() {
+  public List<StockSymbol> getAllSymbols() {
     return em.createNamedQuery(StockSymbol.FIND_ALL, StockSymbol.class).getResultList();
   }
 
