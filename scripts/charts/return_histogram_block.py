@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 # draw the chart for tickers within block
 
-from sqlalchemy import create_engine
 import pandas as pd
 import tushare as ts
 import numpy as np
@@ -10,9 +9,6 @@ import matplotlib
 
 matplotlib.style.use('ggplot')
 pd.options.display.mpl_style = 'default'
-
-# retrieve the current data
-# engine = create_engine('mysql+pymysql://root:adobe@127.0.0.1/tushare?charset=utf8')
 
 # software targets
 targets = [
@@ -88,3 +84,7 @@ charts_np.tolist()[0][0].get_figure().savefig("chart-hist.png")
 charts_np = df_total.plot(kind='box', figsize=(40, 40))
 charts_np.set_xticklabels(map(lambda x: x.get_text(), charts_np.get_xticklabels()), rotation=90)
 charts_np.get_figure().savefig("chart-box.png")
+
+# correlation scatter chart
+chart_scatter = pd.scatter_matrix(df_total, diagonal='kde', alpha=0.7, figsize=(80, 80))
+chart_scatter.tolist()[0][0].get_figure().savefig("chart-scatter.png")
