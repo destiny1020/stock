@@ -80,11 +80,11 @@ for code in targets:
 df_total = pd.concat(df_total_list)
 df_total = df_total.pivot('date', 'ticker', 'p_change')
 
+# chart histogram
 charts_np = df_total.hist(bins=50, figsize=(40, 40))
+charts_np.tolist()[0][0].get_figure().savefig("chart-hist.png")
 
-# for idx, val in enumerate(charts_np.tolist()[0]):
-#     print idx, val
-#     fig = val.get_figure()
-#     fig.savefig("chart-%d.png" % idx)
-
-charts_np.tolist()[0][0].get_figure().savefig("chart.png")
+# chart box
+charts_np = df_total.plot(kind='box', figsize=(40, 40))
+charts_np.set_xticklabels(map(lambda x: x.get_text(), charts_np.get_xticklabels()), rotation=90)
+charts_np.get_figure().savefig("chart-box.png")
