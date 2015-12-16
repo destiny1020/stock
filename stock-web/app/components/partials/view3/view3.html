@@ -44,18 +44,31 @@
     </div>
 
     <div class="details-container" ng-if="detailReady">
-      <table class="table table-striped price-table" ng-repeat="selectedSymbol in selectedSymbols track by selectedSymbol.symbol">
+      <table class="table price-table" ng-repeat="selectedSymbol in selectedSymbols track by selectedSymbol.symbol">
         <thead>
         <tr>
-            <th>R/S</th>
+            <th>指标</th>
             <th>价格</th>
             <th>幅度</th>
             <th></th>
         </tr>
         </thead>
         <tbody>
-            <tr ng-repeat="price in selectedSymbol.sensiblePrices" ng-class="{ 'info':price.name === 'CLOSE', 'danger':price.percentageToClose < 0, 'success':price.percentageToClose > 0 }">
-                <td class="col-xs-4">{{ price.name }}</td>
+            <tr ng-repeat="price in selectedSymbol.sensiblePrices" ng-class="{ 'info':price.name === 'CLOSE', 
+            'level-monthly-red':price.percentageToClose < 0 && price.level === 0, 
+            'level-weekly-red':price.percentageToClose < 0 && price.level === 1, 
+            'level-daily-red':price.percentageToClose < 0 && price.level === 2, 
+            'level-60min-red':price.percentageToClose < 0 && price.level === 3, 
+            'level-30min-red':price.percentageToClose < 0 && price.level === 4, 
+            'level-15min-red':price.percentageToClose < 0 && price.level === 5, 
+            'level-monthly-green':price.percentageToClose > 0 && price.level === 0, 
+            'level-weekly-green':price.percentageToClose > 0 && price.level === 1, 
+            'level-daily-green':price.percentageToClose > 0 && price.level === 2, 
+            'level-60min-green':price.percentageToClose > 0 && price.level === 3, 
+            'level-30min-green':price.percentageToClose > 0 && price.level === 4, 
+            'level-15min-green':price.percentageToClose > 0 && price.level === 5,
+            }">
+                <td class="col-xs-4">{{ price.name }}({{ levelToText(price.level) }})</td>
                 <td class="col-xs-3">{{ price.price | number:2 }}</td>
                 <td class="col-xs-3">
                     {{ price.percentageToClose | number:2 }}% 

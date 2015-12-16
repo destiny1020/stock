@@ -63,3 +63,64 @@ a.index-box:hover {
 .deviate-icon {
     cursor: pointer;
 }
+
+/*level and colors*/
+/*900*/
+.level-monthly-green { 
+    background: #1B5E20;
+}
+
+/*800*/
+.level-weekly-green {
+    background: #2E7D32;
+}
+
+/*600*/
+.level-daily-green {
+    background: #43A047;
+}
+
+/*300*/
+.level-60min-green {
+    background: #81C784;
+}
+
+/*200*/
+.level-30min-green {
+    background: #A5D6A7;
+}
+
+/*100*/
+.level-15min-green {
+    background: #C8E6C9;
+}
+
+/*900*/
+.level-monthly-red { 
+    background: #B71C1C;
+}
+
+/*800*/
+.level-weekly-red {
+    background: #C62828;
+}
+
+/*600*/
+.level-daily-red {
+    background: #E53935;
+}
+
+/*300*/
+.level-60min-red {
+    background: #E57373;
+}
+
+/*200*/
+.level-30min-red {
+    background: #EF9A9A;
+}
+
+/*100*/
+.level-15min-red {
+    background: #FFCDD2;
+}
