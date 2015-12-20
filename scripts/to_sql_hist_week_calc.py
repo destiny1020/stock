@@ -168,11 +168,11 @@ df['min250'] = pd.rolling_min(df['low'], 250)
 df['min888'] = pd.rolling_min(df['low'], 888)
 
 # exponential moving average
-df['ema5'] = pd.ewma(df['close'], span=5)
-df['ema17'] = pd.ewma(df['close'], span=17)
-df['ema34'] = pd.ewma(df['close'], span=34)
-df['ema55'] = pd.ewma(df['close'], span=55)
-df['ema99'] = pd.ewma(df['close'], span=99)
+df['ema5'] = pd.ewma(df['close'], span=5, adjust=False)
+df['ema17'] = pd.ewma(df['close'], span=17, adjust=False)
+df['ema34'] = pd.ewma(df['close'], span=34, adjust=False)
+df['ema55'] = pd.ewma(df['close'], span=55, adjust=False)
+df['ema99'] = pd.ewma(df['close'], span=99, adjust=False)
 
 # bolling related
 df['bu25'] = df['ma25'] + 2 * pd.rolling_std(df['close'], 25)
