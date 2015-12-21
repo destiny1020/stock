@@ -7,43 +7,6 @@ import numpy as np
 from sqlalchemy import create_engine
 from datetime import datetime, date
 
-symbol = sys.argv[1]
-
-# retrieve the current data
-engine = create_engine('mysql+pymysql://root:adobe@127.0.0.1/tushare?charset=utf8')
-
-# first try to fetch current week data
-try:
-    df_weekly_previous = pd.read_sql_query('select * from data_week_calc where code = ' + symbol + ' order by sequence', engine, index_col='date', parse_dates=['date'])
-    if df_weekly_previous.size == 0:
-        no_previous_weekly_data = True
-        print 'No previous weekly data for %s' % symbol
-    else:
-        no_previous_weekly_data = False
-except Exception, e:
-    no_previous_weekly_data = True
-    print '[Exception] When fetching weekly data for %s --- %s' % (symbol, str(e))
-
-# get latest daily data
-if no_previous_weekly_data:
-    daily_data_sql = 'select * from data_daily where code = ' + symbol + ' order by sequence'
-else:
-    last_weekly_data_date = df_weekly_previous.tail(1).index[0]
-    daily_data_sql = 'select * from data_daily where code = ' + symbol + ' and date >= ' + last_weekly_data_date.strftime('%Y-%m-%d') + 'order by sequence'
-
-try:
-    df_previous = pd.read_sql_query('select * from data_daily where code = ' + symbol + ' order by sequence', engine, index_col='date', parse_dates=['date'])
-    if df_previous.size == 0:
-        no_previous_data = True
-        print 'No previous daily data for %s' % symbol
-        sys.exit(0)
-    else:
-        no_previous_data = False
-except:
-    no_previous_data = True
-    print '[Exception] When fetching daily data for %s' % symbol
-    sys.exit(0)
-
 def calculate_weekly_data(param_weekly_data):
     if len(param_weekly_data) == 0:
         return None
@@ -72,38 +35,164 @@ def calculate_weekly_data(param_weekly_data):
 
     return pd.Series(ret_data)
 
-calc_weekly_data = []
-current_weekly_data = []
-previous_daily_data = None
-row_number = df_previous.shape[0]
-df_previous = df_previous.reset_index()
-for idx, daily_data in df_previous.iterrows():
-    if idx == 0:
-        current_weekly_data.append(daily_data)
+def update_last_weekly_record(param_last_weekly_record, param_remaining_weekly_data):
+    ret_data = {}
+    ret_data['high'] = param_last_weekly_record['high']
+    ret_data['low'] = param_last_weekly_record['low']
+    ret_data['open'] = param_last_weekly_record['open']
+    ret_data['close'] = param_last_weekly_record['close']
+    ret_data['volume'] = param_last_weekly_record['volume']
+    ret_data['amount'] = param_last_weekly_record['amount']
+
+    for _daily_data in param_remaining_weekly_data:
+        if _daily_data['high'] > ret_data['high']:
+            ret_data['high'] = _daily_data['high']
+        if _daily_data['low'] < ret_data['low']:
+            ret_data['low'] = _daily_data['low']
+
+        ret_data['volume'] += _daily_data['volume']
+        ret_data['amount'] += _daily_data['amount']
+        ret_data['date'] = _daily_data['date']
+
+    return pd.Series(ret_data)
+
+# program started
+symbol = sys.argv[1]
+
+# retrieve the current data
+engine = create_engine('mysql+pymysql://root:adobe@127.0.0.1/tushare?charset=utf8')
+
+# first try to fetch current week data
+try:
+    df_weekly_previous = pd.read_sql_query('select * from data_week_calc where code = \'' + symbol + '\' order by sequence', engine, index_col='date', parse_dates=['date'])
+    if df_weekly_previous.size == 0:
+        no_previous_weekly_data = True
+        print 'No previous weekly data for %s' % symbol
     else:
-        days_off = (daily_data['date'] - previous_daily_data['date']).days
-        if days_off < 7 and daily_data['date'].weekday() > previous_daily_data['date'].weekday():
+        no_previous_weekly_data = False
+except Exception, e:
+    no_previous_weekly_data = True
+    print '[Exception] When fetching weekly data for %s --- %s' % (symbol, str(e))
+
+# get latest daily data
+if no_previous_weekly_data:
+    daily_data_sql = 'select * from data_daily where code = \'' + symbol + '\' order by sequence'
+else:
+    last_weekly_data_date = df_weekly_previous.tail(1).index[0]
+    daily_data_sql = 'select * from data_daily where code = \'' + symbol + '\' and date > \'' + last_weekly_data_date.strftime('%Y-%m-%d') + '\' order by sequence'
+
+# debug purpose
+print 'DAILY SELECT: %s' % daily_data_sql
+
+try:
+    df_previous = pd.read_sql_query(daily_data_sql, engine, index_col='date', parse_dates=['date'])
+    if df_previous.size == 0:
+        no_previous_data = True
+        print 'No previous daily data for %s' % symbol
+        sys.exit(0)
+    else:
+        no_previous_data = False
+except:
+    no_previous_data = True
+    print '[Exception] When fetching daily data for %s' % symbol
+    sys.exit(0)
+
+if no_previous_weekly_data:
+    # start of no_previous_weekly_data is True
+    calc_weekly_data = []
+    current_weekly_data = []
+    previous_daily_data = None
+    row_number = df_previous.shape[0]
+    df_previous = df_previous.reset_index()
+    for idx, daily_data in df_previous.iterrows():
+        if idx == 0:
             current_weekly_data.append(daily_data)
         else:
-            # calculate the current_weekly_data
-            # print 'calculate current: %d --- %s to %s ' % len(current_weekly_data), current_weekly_data[0]['date'], current_weekly_data[len(current_weekly_data) - 1]['date']
+            days_off = (daily_data['date'] - previous_daily_data['date']).days
+            if days_off < 7 and daily_data['date'].weekday() > previous_daily_data['date'].weekday():
+                current_weekly_data.append(daily_data)
+            else:
+                # calculate the current_weekly_data
+                # print 'calculate current: %d --- %s to %s ' % len(current_weekly_data), current_weekly_data[0]['date'], current_weekly_data[len(current_weekly_data) - 1]['date']
+                calc_weekly_data.append(calculate_weekly_data(current_weekly_data))
+
+                current_weekly_data = []
+                current_weekly_data.append(daily_data)
+
+        previous_daily_data = daily_data
+
+        # calc the lastest week
+        if idx == row_number - 1:
             calc_weekly_data.append(calculate_weekly_data(current_weekly_data))
 
-            current_weekly_data = []
+    # process the weekly_data
+    df = pd.DataFrame(calc_weekly_data).set_index('date')
+
+    # end of no_previous_weekly_data is True
+else:
+    # start of no_previous_weekly_data is False
+    df_previous = df_previous.reset_index()
+    new_week_start_idx = 0
+    current_weekly_data = []
+    for idx, daily_data in df_previous.iterrows():
+        # whether current daily_data is belonging to the same week as last record in df_weekly_previous
+        days_off = (daily_data['date'] - last_weekly_data_date.to_pydatetime()).days
+        if days_off < 7 and daily_data['date'].weekday() > last_weekly_data_date.weekday():
+            # update the last weekly record
             current_weekly_data.append(daily_data)
+            new_week_start_idx = new_week_start_idx + 1
+        else:
+            if len(current_weekly_data) > 0:
+                updated_last_weekly_data = update_last_weekly_record(df_weekly_previous.iloc[-1], current_weekly_data)
+                df_weekly_previous = pd.concat([df_weekly_previous[0:-1], pd.DataFrame([updated_last_weekly_data]).set_index('date')])
 
-    previous_daily_data = daily_data
+            # delete the last weekly record
+            with engine.begin() as conn:
+                conn.execute('DELETE FROM data_week_calc WHERE DATE = \'%s\' AND CODE = \'%s\'' % (last_weekly_data_date.strftime('%Y-%m-%d'), symbol))
 
-    # calc the lastest week
-    if idx == row_number - 1:
-        calc_weekly_data.append(calculate_weekly_data(current_weekly_data))
+            break
 
-# process the weekly_data
-df = pd.DataFrame(calc_weekly_data).set_index('date')
+    df_weekly_previous = df_weekly_previous.reset_index()
+
+    # continue for the remaining daily data
+    calc_weekly_data = []
+    current_weekly_data = []
+    previous_daily_data = None
+    row_number = df_previous.shape[0]
+    for idx, daily_data in df_previous[new_week_start_idx:].iterrows():
+        if idx == new_week_start_idx:
+            current_weekly_data.append(daily_data)
+        else:
+            # print daily_data, previous_daily_data
+            days_off = (daily_data['date'] - previous_daily_data['date']).days
+            if days_off < 7 and daily_data['date'].weekday() > previous_daily_data['date'].weekday():
+                current_weekly_data.append(daily_data)
+            else:
+                # calculate the current_weekly_data
+                # print 'calculate current: %d --- %s to %s ' % len(current_weekly_data), current_weekly_data[0]['date'], current_weekly_data[len(current_weekly_data) - 1]['date']
+                calc_weekly_data.append(calculate_weekly_data(current_weekly_data))
+
+                current_weekly_data = []
+                current_weekly_data.append(daily_data)
+
+        previous_daily_data = daily_data
+
+        # calc the lastest week
+        if idx == row_number - 1:
+            calc_weekly_data.append(calculate_weekly_data(current_weekly_data))
+
+    # process the weekly_data
+    df_weekly_latest = pd.DataFrame(calc_weekly_data)
+
+    # concat two parts
+    df = pd.concat([df_weekly_previous, df_weekly_latest]).set_index('date')
+
+    # end of no_previous_weekly_data is False
 
 # determine the last sequence id
 if 'sequence' in df.head(1):
     first_sequence_id = df.head(1)['sequence'].ix[0]
+    last_sequence_id = df_weekly_previous.tail(1)['sequence'].index[0]
 else:
     first_sequence_id = 1
     last_sequence_id = np.nan
