@@ -10,7 +10,7 @@ public enum PeriodType {
       "15 Minutes",
       "python E:\\Code\\STS\\workspace-sts-3.6.4.RELEASE\\stock\\scripts\\to_sql_hist_15.py "), W(
       "Weekly",
-      "python E:\\Code\\STS\\workspace-sts-3.6.4.RELEASE\\stock\\scripts\\to_sql_hist_week.py ");
+      "python E:\\Code\\STS\\workspace-sts-3.6.4.RELEASE\\stock\\scripts\\to_sql_hist_week_calc.py ");
 
   private String explain;
   private String scriptDest;
