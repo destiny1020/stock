@@ -50,6 +50,7 @@ def update_last_weekly_record(param_last_weekly_record, param_remaining_weekly_d
         if _daily_data['low'] < ret_data['low']:
             ret_data['low'] = _daily_data['low']
 
+        ret_data['close'] = _daily_data['close']
         ret_data['volume'] += _daily_data['volume']
         ret_data['amount'] += _daily_data['amount']
         ret_data['date'] = _daily_data['date']
@@ -128,12 +129,16 @@ if no_previous_weekly_data:
     # process the weekly_data
     df = pd.DataFrame(calc_weekly_data).set_index('date')
 
+    first_sequence_id = 1
+    last_sequence_id = np.nan
+
     # end of no_previous_weekly_data is True
 else:
     # start of no_previous_weekly_data is False
     df_previous = df_previous.reset_index()
     new_week_start_idx = 0
     current_weekly_data = []
+    # only handle the daily data within the same week
     for idx, daily_data in df_previous.iterrows():
         # whether current daily_data is belonging to the same week as last record in df_weekly_previous
         days_off = (daily_data['date'] - last_weekly_data_date.to_pydatetime()).days
@@ -142,15 +147,15 @@ else:
             current_weekly_data.append(daily_data)
             new_week_start_idx = new_week_start_idx + 1
         else:
-            if len(current_weekly_data) > 0:
-                updated_last_weekly_data = update_last_weekly_record(df_weekly_previous.iloc[-1], current_weekly_data)
-                df_weekly_previous = pd.concat([df_weekly_previous[0:-1], pd.DataFrame([updated_last_weekly_data]).set_index('date')])
-
-            # delete the last weekly record
-            with engine.begin() as conn:
-                conn.execute('DELETE FROM data_week_calc WHERE DATE = \'%s\' AND CODE = \'%s\'' % (last_weekly_data_date.strftime('%Y-%m-%d'), symbol))
-
             break
+
+    if len(current_weekly_data) > 0:
+        updated_last_weekly_data = update_last_weekly_record(df_weekly_previous.iloc[-1], current_weekly_data)
+        df_weekly_previous = pd.concat([df_weekly_previous[0:-1], pd.DataFrame([updated_last_weekly_data]).set_index('date')])
+
+        # delete the last weekly record
+        with engine.begin() as conn:
+            conn.execute('DELETE FROM data_week_calc WHERE DATE = \'%s\' AND CODE = \'%s\'' % (last_weekly_data_date.strftime('%Y-%m-%d'), symbol))
 
     df_weekly_previous = df_weekly_previous.reset_index()
 
@@ -187,16 +192,12 @@ else:
     # concat two parts
     df = pd.concat([df_weekly_previous, df_weekly_latest]).set_index('date')
 
+    first_sequence_id = df_weekly_previous.head(1)['sequence'].values[0]
+    last_sequence_id = df_weekly_previous.tail(1)['sequence'].values[0]
+
     # end of no_previous_weekly_data is False
 
-# determine the last sequence id
-if 'sequence' in df.head(1):
-    first_sequence_id = df.head(1)['sequence'].ix[0]
-    last_sequence_id = df_weekly_previous.tail(1)['sequence'].index[0]
-else:
-    first_sequence_id = 1
-    last_sequence_id = np.nan
-
+# data processing started
 df['code'] = symbol
 df['period_type'] = 'W'
 

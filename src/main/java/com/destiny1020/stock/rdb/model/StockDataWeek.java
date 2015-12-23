@@ -22,7 +22,7 @@ import javax.persistence.TemporalType;
  * 
  */
 @Entity
-@Table(name = "data_week")
+@Table(name = "data_week_calc")
 @NamedQueries({
     @NamedQuery(name = StockDataWeek.FIND_ALL_BY_CODE, query = StockDataWeek.FIND_ALL_BY_CODE_SQL),
     @NamedQuery(name = StockDataWeek.FIND_MAX_DATE_BY_CODE,
