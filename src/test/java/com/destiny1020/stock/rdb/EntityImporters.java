@@ -58,4 +58,16 @@ public class EntityImporters extends DBConfigBase {
     });
   }
 
+  @Test
+  public void testReadIdxSymbols() throws IOException {
+    LOGGER.info("About to load all index symbols.");
+
+    List<StockSymbol> idxSymbols =
+        em.createNamedQuery(StockSymbol.FIND_BY_IDX, StockSymbol.class).getResultList();
+
+    idxSymbols.forEach(symbol -> {
+      System.out.println(symbol.getSymbol() + " --- " + symbol.getName());
+    });
+  }
+
 }

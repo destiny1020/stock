@@ -14,7 +14,8 @@ import com.destiny1020.stock.es.IEsIDEntity;
 @Table(name = "symbol")
 @NamedQueries({@NamedQuery(name = StockSymbol.FIND_ALL, query = StockSymbol.FIND_ALL_SQL),
     @NamedQuery(name = StockSymbol.FIND_BY_SYMBOL, query = StockSymbol.FIND_BY_SYMBOL_SQL),
-    @NamedQuery(name = StockSymbol.FIND_BY_SYMBOLS, query = StockSymbol.FIND_BY_SYMBOLS_SQL)})
+    @NamedQuery(name = StockSymbol.FIND_BY_SYMBOLS, query = StockSymbol.FIND_BY_SYMBOLS_SQL),
+    @NamedQuery(name = StockSymbol.FIND_BY_IDX, query = StockSymbol.FIND_BY_IDX_SQL)})
 public class StockSymbol implements IEsIDEntity {
 
   public static final String FIND_ALL = "StockSymbol.findAll";
@@ -27,6 +28,9 @@ public class StockSymbol implements IEsIDEntity {
   public static final String FIND_BY_SYMBOLS = "StockSymbol.findBySymbols";
   public static final String FIND_BY_SYMBOLS_SQL =
       "select s from StockSymbol s where s.symbol in :symbols";
+
+  public static final String FIND_BY_IDX = "StockSymbol.findByIdx";
+  public static final String FIND_BY_IDX_SQL = "select s from StockSymbol s where s.idx = 1";
 
   @Id
   @GeneratedValue
@@ -50,6 +54,12 @@ public class StockSymbol implements IEsIDEntity {
    */
   @Column(name = "NAME")
   private String name;
+
+  /**
+   * 是否是指数
+   */
+  @Column(name = "IDX")
+  private Boolean idx;
 
   public StockSymbol() {
 
@@ -101,6 +111,14 @@ public class StockSymbol implements IEsIDEntity {
 
   public boolean isNotCYB() {
     return !code.startsWith("30");
+  }
+
+  public Boolean getIdx() {
+    return idx;
+  }
+
+  public void setIdx(Boolean idx) {
+    this.idx = idx;
   }
 
 }
