@@ -46,7 +46,7 @@ public class BatchMySQLExporter {
    */
   public static void exportHistoryToMySQL(StockSymbol symbol) throws InterruptedException,
       IOException {
-    String endDate = "2015-12-31";
+    String endDate = "2016-12-31";
     String startDate = "2000-01-01";
 
     // step 1: find the latest available date --- daily
