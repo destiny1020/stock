@@ -113,12 +113,15 @@ ROI:IF(FINAL_EXIT || FINAL_EXIT2,
 STICKLINE(ROI > 0, ROI * 10, 0, 10, 0), COLORRED;
 STICKLINE(ROI < 0, ROI * 10, 0, 10, 0), COLORGREEN;
 
+{统计买入次数, 验证买入次数是否与卖出次数相等}
+BN:SUM(FINAL_ENTER, 0);
+
 {交易次数 & 盈利与否}
-N:=SUM(FINAL_EXIT || FINAL_EXIT2, 0);
+SN:SUM(FINAL_EXIT || FINAL_EXIT2, 0);
 W:=IF(ROI > 0, 1, 0);
 
 {成功率}
-WIN:SUM(W, 0) / N * 100;
+WIN:SUM(W, 0) / SN * 100;
 
 {收益率}
 TROI:MULAR(R, 0);
