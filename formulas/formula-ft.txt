@@ -1,94 +1,104 @@
-DIFF:=EMA(CLOSE,12) - EMA(CLOSE,26);
-DEA  := EMA(DIFF,9);
+DIFF:=EMA(CLOSE,12)-EMA(CLOSE,26);
+DEA:=EMA(DIFF,9);
 
-{À©´óMACDÏµÊýÊ¹Ö®¸üÃô¸Ð}
+{æ‰©å¤§MACDç³»æ•°ä½¿ä¹‹æ›´æ•æ„Ÿ}
 MACD := 100*(DIFF-DEA);
 
 MID :=MA(CLOSE,99);
 UPPER:=MID+2*STD(CLOSE,99);
 LOWER:=MID-2*STD(CLOSE,99);
 
-{Ç¿ÈõÏµÊý¶¨Òå}
+{å¼•ç”¨æ—¥çº¿æ•°æ®}
+DIFF_DAY:=MACD.DIF#DAY;
+MACD_DAY:=MACD.MACD#DAY;
+
+{å¼ºå¼±ç³»æ•°å®šä¹‰}
 X_STRONG:=40;
 X_WEAK:=50;
 
 X_DIFF_STRONG:=CLOSE/X_STRONG;
 X_DIFF_WEAK:=CLOSE/X_WEAK;
 
-{Èë³¡Ïà¹Ø}
+{å…¥åœºç›¸å…³}
 
-{²âÊÔBOLL:ÊÕÅÌ¼Û´óÓÚÏÂ¹ì »òÕß ÏÂ¹ìÖ¹µø}
+{æµ‹è¯•BOLL:æ”¶ç›˜ä»·å¤§äºŽä¸‹è½¨ æˆ–è€… ä¸‹è½¨æ­¢è·Œ}
 F_BOLL:=LOWER < CLOSE || LOWER >= REF(LOWER, 1);
 
-{²âÊÔDIFF:Èç¹ûDIFF´¦ÓÚ¼«ÈõÇø¼ä, ²»²ÎÓë;·ñÔòÖ»ÓÐµ±DIFÖ¹µø²Å²ÎÓë}
+{æµ‹è¯•DIFF:å¦‚æžœDIFFå¤„äºŽæžå¼±åŒºé—´, ä¸å‚ä¸Ž;å¦åˆ™åªæœ‰å½“DIFæ­¢è·Œæ‰å‚ä¸Ž}
 F_DIFF:=IF(DIFF>=-X_DIFF_WEAK, DIFF >= REF(DIFF, 1), 0);
 
-{²âÊÔMACD:MACDÂÌÖùÏß¿ªÊ¼Ïò0ÖáÊÕÁ²»òÕßÏò¶à·½·¢É¢}
+{æµ‹è¯•MACD:MACDç»¿æŸ±çº¿å¼€å§‹å‘0è½´æ”¶æ•›æˆ–è€…å‘å¤šæ–¹å‘æ•£}
 F_MACD:=MACD > REF(MACD, 1);
 
-{Èë³¡±êÖ¾}
-F_LONG_ENTER:=F_BOLL && F_DIFF && F_MACD;
+{æµ‹è¯•æ—¥çº¿æ•°æ®æ˜¯å¤Ÿå®‰å…¨, æ³¨æ„1æ ¹æ—¥Kè¡¨ç¤º8æ ¹30åˆ†é’ŸK}
+{å¦‚æžœDIFæ­£å¤„äºŽä¸‹è·Œè¿‡ç¨‹ä¸­, ä¸å‚ä¸Ž}
+F_DIFF_DAY:=IF(DIFF_DAY>=REF(DIFF_DAY, 8), 1, 0);
+{å¦‚æžœMACDæ­£å¤„äºŽä¸‹é™è¿‡ç¨‹ä¸­, ä¸å‚ä¸Ž}
+F_MACD_DAY:=IF(MACD_DAY>=REF(MACD_DAY, 8), 1, 0);
+
+{å…¥åœºæ ‡å¿—}
+F_LONG_ENTER:=F_BOLL && F_DIFF && F_MACD && F_DIFF_DAY && F_MACD_DAY;
 
 {--------}
 
-{³ö³¡Ïà¹Ø}
+{å‡ºåœºç›¸å…³}
 
-{²âÊÔBOLL:µ±´¦ÓÚ¼«Ç¿×´Ì¬²¢ÇÒÎ´ÐÎ³ÉËÀ²æÇ°Ê±²»³ö³¡}
+{æµ‹è¯•BOLL:å½“å¤„äºŽæžå¼ºçŠ¶æ€å¹¶ä¸”æœªå½¢æˆæ­»å‰å‰æ—¶ä¸å‡ºåœº}
 F_BOLL_EXIT:=CLOSE < UPPER || (CLOSE >= UPPER && DIFF <= DEA);
 
-{²âÊÔDIFF:DIFFÏÂÇã}
+{æµ‹è¯•DIFF:DIFFä¸‹å€¾}
 F_DIFF_EXIT:=DIFF < REF(DIFF, 1);
 
-{²âÊÔMACD:µ±DIF²»´¦ÓÚ¼«Ç¿Çø¼äÊ±, MACDºìÖùÏß¿ªÊ¼ÊÕÁ²»òÕßÉ±¶à°ô³öÏÖ; µ±DIF´¦ÓÚ¼«Ç¿, ²»¿¼ÂÇMACD}
+{æµ‹è¯•MACD:å½“DIFä¸å¤„äºŽæžå¼ºåŒºé—´æ—¶, MACDçº¢æŸ±çº¿å¼€å§‹æ”¶æ•›æˆ–è€…æ€å¤šæ£’å‡ºçŽ°; å½“DIFå¤„äºŽæžå¼º, ä¸è€ƒè™‘MACD}
 F_MACD_EXIT:=IF(DIFF>=X_DIFF_STRONG, 0, IF(DIFF<0, MACD <= REF(MACD, 1) * 1.005, MACD <= REF(MACD, 1) * 1.001));
 
-{³ö³¡±êÖ¾}
+{å‡ºåœºæ ‡å¿—}
 F_LONG_EXIT:=F_BOLL_EXIT && (F_DIFF_EXIT || F_MACD_EXIT);
 
-{Èë³¡ÐÅºÅºÍ³ö³¡ÐÅºÅ}
+{å…¥åœºä¿¡å·å’Œå‡ºåœºä¿¡å·}
 ENTER_LONG:=F_LONG_ENTER;
 EXIT_LONG:=F_LONG_EXIT;
 
-{¾àÀëÉÏÒ»´Î¿ª²Ö/Æ½²ÖÖÜÆÚÊýÁ¿}
+{è·ç¦»ä¸Šä¸€æ¬¡å¼€ä»“/å¹³ä»“å‘¨æœŸæ•°é‡}
 L1:=REF(BARSLAST(ENTER_LONG), 1) + 1;
 L2:=REF(BARSLAST(EXIT_LONG), 1) + 1;
 
-{·ÀÖ¹µ±Ä³¸ùKÏß¼ÈÂú×ãÈë³¡Ìõ¼þÒ²Âú×ã³ö³¡Ìõ¼þ}
+{é˜²æ­¢å½“æŸæ ¹Kçº¿æ—¢æ»¡è¶³å…¥åœºæ¡ä»¶ä¹Ÿæ»¡è¶³å‡ºåœºæ¡ä»¶}
 ENTERLONG_M:=ENTER_LONG && L1 > L2;
 EXITLONG_M:=EXIT_LONG && L1 < L2;
 
-{²âÊÔT+1}
+{æµ‹è¯•T+1}
 T1B:=IF(ENTERLONG_M, DATE, 0);
 T1S:=IF(EXITLONG_M, DATE, 0);
 
-{²»ÔÚÍ¬Ò»½»Ò×ÈÕ¶à´ÎÂòÈë}
+{ä¸åœ¨åŒä¸€äº¤æ˜“æ—¥å¤šæ¬¡ä¹°å…¥}
 T1B_OK:=IF(ENTERLONG_M && T1B=REF(T1B, REF(BARSLAST(ENTERLONG_M), 1) + 1), 0, 1);
 ENTERLONG_M1:=ENTERLONG_M && T1B_OK;
 
 T1S_OK:=IF(T1S=REF(T1B, BARSLAST(ENTERLONG_M)), 0, 1);
-{¿¼ÂÇT+1ºóµÄÂô³ö}
+{è€ƒè™‘T+1åŽçš„å–å‡º}
 EXITLONG_M1:=EXITLONG_M && T1S_OK;
 
-{¼¯ºÏ¾º¼ÛÊÇ·ñÂô³ö: Ê±¼äÂú×ã && Ç°Ò»½»Ò×ÈÕÍ¬Ê±´æÔÚBÒÔ¼°S && BÔÚSÖ®Ç°}
+{é›†åˆç«žä»·æ˜¯å¦å–å‡º: æ—¶é—´æ»¡è¶³ && å‰ä¸€äº¤æ˜“æ—¥åŒæ—¶å­˜åœ¨Bä»¥åŠS && Båœ¨Sä¹‹å‰}
 EXITLONG_M2:=(MINUTE=0 && HOUR=10) 
 	&& REF(BARSLAST(ENTERLONG_M), 1) + 1 <= 8 
 	&& (REF(T1B, REF(BARSLAST(ENTERLONG_M), 1) + 1) = REF(T1S, REF(BARSLAST(EXITLONG_M), 1) + 1))
 	&& REF(BARSLAST(ENTERLONG_M), 1) > REF(BARSLAST(EXITLONG_M), 1);
 
-{¼ì²éÇ°·½ÂòÈë²Ù×÷ÊÇ·ñÔÚÂô³ö²Ù×÷Ö®ºó}
+{æ£€æŸ¥å‰æ–¹ä¹°å…¥æ“ä½œæ˜¯å¦åœ¨å–å‡ºæ“ä½œä¹‹åŽ}
 L1_E:=REF(BARSLAST(ENTERLONG_M1), 1) + 1;
 L2_E:=MIN(REF(BARSLAST(EXITLONG_M2), 1) + 1, REF(BARSLAST(EXITLONG_M1), 1) + 1);
 
-{ÒÔÉÏºÍÖ÷Í¼ÏµÍ³Ò»Ñù}
+{ä»¥ä¸Šå’Œä¸»å›¾ç³»ç»Ÿä¸€æ ·}
 
-{Êä³ö:FINAL_ENTER:30·ÖÖÓÊÕÅÌÂòÈë}
-{Êä³ö:FINAL_EXIT:30·ÖÖÓÊÕÅÌÂô³ö}
-{Êä³ö:FINAL_EXIT2:¿ªÅÌÂô³ö, ×ÜÊÇÔÚÔçÉÏ¼¯ºÏ¾º¼ÛÆÚ¼äÂô³ö}
-FINAL_ENTER:ENTERLONG_M1;
-FINAL_EXIT:EXITLONG_M1 && (NOT(EXITLONG_M2) || (EXITLONG_M2 && L1_E <= L2_E));
-FINAL_EXIT2:EXITLONG_M2;
+{è¾“å‡º:FINAL_ENTER:30åˆ†é’Ÿæ”¶ç›˜ä¹°å…¥}
+{è¾“å‡º:FINAL_EXIT:30åˆ†é’Ÿæ”¶ç›˜å–å‡º}
+{è¾“å‡º:FINAL_EXIT2:å¼€ç›˜å–å‡º, æ€»æ˜¯åœ¨æ—©ä¸Šé›†åˆç«žä»·æœŸé—´å–å‡º}
+FINAL_ENTER:=ENTERLONG_M1;
+FINAL_EXIT:=EXITLONG_M1 && (NOT(EXITLONG_M2) || (EXITLONG_M2 && L1_E <= L2_E));
+FINAL_EXIT2:=EXITLONG_M2;
 
-{¼ÆËãÊÕÒæÂÊ}
+{è®¡ç®—æ”¶ç›ŠçŽ‡}
 R:=IF(FINAL_EXIT || FINAL_EXIT2, 
 	IF(FINAL_EXIT, 
 		1 + (CLOSE - REF(CLOSE, BARSLAST(FINAL_ENTER))) / REF(CLOSE, BARSLAST(FINAL_ENTER)), 
@@ -103,19 +113,23 @@ ROI:IF(FINAL_EXIT || FINAL_EXIT2,
 STICKLINE(ROI > 0, ROI, 0, 10, 0), COLORRED;
 STICKLINE(ROI < 0, ROI, 0, 10, 0), COLORGREEN;
 
-{½»Ò×´ÎÊý}
-{N:SUM(FINAL_EXIT || FINAL_EXIT2, 0);}
+{äº¤æ˜“æ¬¡æ•° & ç›ˆåˆ©ä¸Žå¦}
+N:=SUM(FINAL_EXIT || FINAL_EXIT2, 0);
+W:=IF(ROI > 0, 1, 0);
 
-{ÊÕÒæÂÊ}
+{æˆåŠŸçŽ‡}
+WIN: SUM(W, 0) / N * 100;
+
+{æ”¶ç›ŠçŽ‡}
 TROI:MULAR(R, 0);
 
-{µ÷ÊÔÓÃ}
+{è°ƒè¯•ç”¨}
 {
 L1D: REF(BARSLAST(R_ENTER_M), 1) + 1;
 L2D: REF(BARSLAST(R_EXIT_M), 1) + 1;
 }
-{Èë³¡/³ö³¡±êÖ¾}
+{å…¥åœº/å‡ºåœºæ ‡å¿—}
+{
 ENTER:F_LONG_ENTER;
 EXIT:F_LONG_EXIT;
-{
 };
