@@ -1,0 +1,155 @@
+{基于失败案例的分析优化}
+{1. 当30分钟DIF处于多方且日线DIF/MACD安全时, 即使DIF微微下倾也入场}
+{2. 当30分钟出现顶背离的时候，不入场}
+
+DIFF:=EMA(CLOSE,12)-EMA(CLOSE,26);
+DEA:=EMA(DIFF,9);
+
+{扩大MACD系数使之更敏感}
+MACD := 100*(DIFF-DEA);
+
+MID :=MA(CLOSE,99);
+UPPER:=MID+2*STD(CLOSE,99);
+LOWER:=MID-2*STD(CLOSE,99);
+
+{引用均线数据}
+MA60:=MA(CLOSE,60);
+
+{引用日线数据}
+DIFF_DAY:=MACD.DIF#DAY;
+MACD_DAY:=MACD.MACD#DAY;
+
+{强弱系数定义}
+X_STRONG:=40;
+X_WEAK:=50;
+
+X_DIFF_STRONG:=CLOSE/X_STRONG;
+X_DIFF_WEAK:=CLOSE/X_WEAK;
+
+{定义顶背离有效期}
+X_DEVIATE_P:=20;
+
+{入场相关}
+
+{测试BOLL:收盘价大于下轨 或者 下轨止跌}
+F_BOLL:=LOWER < CLOSE || LOWER >= REF(LOWER, 1);
+
+{测试MACD:MACD绿柱线开始向0轴收敛或者向多方发散}
+F_MACD:=MACD > REF(MACD, 1);
+
+{根据上下文给与DIFF补偿}
+X_DIFF:=IF(MA60 > REF(MA60, 1) && DIFF > 0 && F_MACD, 1.1, 1);
+
+{测试DIFF:如果DIFF处于极弱区间, 不参与;否则只有当DIF止跌才参与}
+F_DIFF:=IF(DIFF>=-X_DIFF_WEAK, DIFF * X_DIFF >= REF(DIFF, 1), 0);
+
+{测试日线数据是够安全, 注意1根日K表示8根30分钟K}
+{如果DIF正处于下跌过程中, 不参与}
+F_DIFF_DAY:=IF(DIFF_DAY>=REF(DIFF_DAY, 8), 1, 0);
+{如果MACD正处于下降过程中, 不参与}
+F_MACD_DAY:=IF(MACD_DAY>=REF(MACD_DAY, 8), 1, 0);
+
+{测试是否发生了顶背离}
+C_HIGH:=HHV(CLOSE, X_DEVIATE_P);
+C_HIGH_DIFF:=HHV(DIFF, X_DEVIATE_P);
+F_PEAK_DEVIATE:=IF(C_HIGH=HIGH && DIFF < C_HIGH_DIFF, 1, 0);
+
+{入场标志}
+F_LONG_ENTER:=F_BOLL && F_DIFF && F_MACD && F_DIFF_DAY && F_MACD_DAY && NOT(F_PEAK_DEVIATE);
+
+{--------}
+
+{出场相关}
+
+{测试BOLL:当处于极强状态并且未形成死叉前时不出场}
+F_BOLL_EXIT:=CLOSE < UPPER || (CLOSE >= UPPER && DIFF <= DEA);
+
+{测试DIFF:DIFF下倾, 注意考虑可能存在的DIFF加强因子}
+F_DIFF_EXIT:=DIFF * X_DIFF < REF(DIFF, 1);
+
+{测试MACD:当DIF不处于极强区间时, MACD红柱线开始收敛或者杀多棒出现; 当DIF处于极强, 不考虑MACD}
+F_MACD_EXIT:=IF(DIFF>=X_DIFF_STRONG, 0, IF(DIFF<0, MACD <= REF(MACD, 1) * 1.005, MACD <= REF(MACD, 1) * 1.001));
+
+{出场标志}
+F_LONG_EXIT:=F_BOLL_EXIT && (F_DIFF_EXIT || F_MACD_EXIT);
+
+{入场信号和出场信号}
+{如果DIFF被增强了, 但是同时满足入场和出场信号, 那么还是求稳}
+ENTER_LONG:=IF(F_LONG_EXIT && X_DIFF=1.1, 0, F_LONG_ENTER);
+EXIT_LONG:=F_LONG_EXIT;
+
+{距离上一次开仓/平仓周期数量}
+L1:=REF(BARSLAST(ENTER_LONG), 1) + 1;
+L2:=REF(BARSLAST(EXIT_LONG), 1) + 1;
+
+{防止当某根K线既满足入场条件也满足出场条件}
+ENTERLONG_M:=IF(EXIT_LONG && X_DIFF=1.1, 0, ENTER_LONG && L1 > L2);
+EXITLONG_M:=EXIT_LONG && L1 < L2;
+
+{测试T+1}
+T1B:=IF(ENTERLONG_M, DATE, 0);
+T1S:=IF(EXITLONG_M, DATE, 0);
+
+{不在同一交易日多次买入}
+T1B_OK:=IF(ENTERLONG_M && T1B=REF(T1B, REF(BARSLAST(ENTERLONG_M), 1) + 1), 0, 1);
+ENTERLONG_M1:=ENTERLONG_M && T1B_OK;
+
+T1S_OK:=IF(T1S=REF(T1B, BARSLAST(ENTERLONG_M)), 0, 1);
+{考虑T+1后的卖出}
+EXITLONG_M1:=EXITLONG_M && T1S_OK;
+
+{集合竞价是否卖出: 时间满足 && 前一交易日同时存在B以及S && B在S之前}
+EXITLONG_M2:=(MINUTE=0 && HOUR=10) 
+	&& REF(BARSLAST(ENTERLONG_M), 1) + 1 <= 8 
+	&& (REF(T1B, REF(BARSLAST(ENTERLONG_M), 1) + 1) = REF(T1S, REF(BARSLAST(EXITLONG_M), 1) + 1))
+	&& REF(BARSLAST(ENTERLONG_M), 1) > REF(BARSLAST(EXITLONG_M), 1);
+
+{检查前方买入操作是否在卖出操作之后}
+L1_E:=REF(BARSLAST(ENTERLONG_M1), 1) + 1;
+L2_E:=MIN(REF(BARSLAST(EXITLONG_M2), 1) + 1, REF(BARSLAST(EXITLONG_M1), 1) + 1);
+
+{以上和主图系统一样}
+
+{输出:FINAL_ENTER:30分钟收盘买入}
+{输出:FINAL_EXIT:30分钟收盘卖出}
+{输出:FINAL_EXIT2:开盘卖出, 总是在早上集合竞价期间卖出}
+FINAL_ENTER:=ENTERLONG_M1;
+FINAL_EXIT:=EXITLONG_M1 && (NOT(EXITLONG_M2) || (EXITLONG_M2 && L1_E <= L2_E));
+FINAL_EXIT2:=EXITLONG_M2;
+
+{计算收益率}
+R:=IF(FINAL_EXIT || FINAL_EXIT2, 
+	IF(FINAL_EXIT, 
+		1 + (CLOSE - REF(CLOSE, BARSLAST(FINAL_ENTER))) / REF(CLOSE, BARSLAST(FINAL_ENTER)), 
+		1 + (OPEN - REF(CLOSE, BARSLAST(FINAL_ENTER))) / REF(CLOSE, BARSLAST(FINAL_ENTER))), 
+	1);
+ROI:IF(FINAL_EXIT || FINAL_EXIT2, 
+	IF(FINAL_EXIT, 
+		(CLOSE - REF(CLOSE, BARSLAST(FINAL_ENTER))) / REF(CLOSE, BARSLAST(FINAL_ENTER)) * 100, 
+		(OPEN - REF(CLOSE, BARSLAST(FINAL_ENTER))) / REF(CLOSE, BARSLAST(FINAL_ENTER)) * 100), 
+	0),NODRAW;
+
+STICKLINE(ROI > 0, ROI * 10, 0, 10, 0), COLORRED;
+STICKLINE(ROI < 0, ROI * 10, 0, 10, 0), COLORGREEN;
+
+{统计买入次数, 验证买入次数是否与卖出次数相等}
+BN:SUM(FINAL_ENTER, 0);
+
+{交易次数 & 盈利与否}
+SN:SUM(FINAL_EXIT || FINAL_EXIT2, 0);
+W:=IF(ROI > 0, 1, 0);
+
+{成功率}
+WIN:SUM(W, 0) / SN * 100;
+
+{收益率}
+TROI:MULAR(R, 0);
+
+{调试用}
+{
+L1D: REF(BARSLAST(R_ENTER_M), 1) + 1;
+L2D: REF(BARSLAST(R_EXIT_M), 1) + 1;
+}
+{入场/出场标志}
+ENTER:F_LONG_ENTER;
+EXIT:F_LONG_EXIT;
