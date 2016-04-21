@@ -1,0 +1,31 @@
+DIFF:=EMA(CLOSE,12) - EMA(CLOSE,26);
+DEA:=EMA(DIFF,9);
+MACD:=100*(DIFF-DEA);
+
+{定义有效周期}
+X_DEVIATE_T:=30;
+
+{上一次发生金叉距离当前的周期数量}
+L_GOLDEN_CROSS:=BARSLAST(REF(MACD,1)<0 AND MACD>0);
+
+{更大范围内：上面的周期数量+自定义周期数量, MACD的最小值到当前的周期数}
+L_MACD_N:=LLVBARS(MACD,L_GOLDEN_CROSS+X_DEVIATE_T);
+{如果上一次发生金叉时MACD的值是大于更大范围内MACD的最小值的, 也就是MACD上移, 那么取该MACD的最小值}
+L_MACD:=IF(L_MACD_N>L_GOLDEN_CROSS,REF(MACD,L_MACD_N),0);
+
+{更大范围内：上面的周期数量+自定义周期数量, DIFF的最小值到当前的周期数}
+L_DIFF_N:=LLVBARS(DIFF,L_GOLDEN_CROSS+X_DEVIATE_T);
+{如果DIF的最小值出现在上一次金叉之前，那么取DIFF的最小值}
+L_DIFF:=IF(L_DIFF_N>L_GOLDEN_CROSS,REF(DIFF,L_DIFF_N),0);
+
+DBL_CORE:=MACD<0                                  {当前的MACD小于0}
+  AND MACD>L_MACD                                 {当前的MACD大于上述MACD的最小值}
+  AND DIFF<0                                      {当前DIFF小于0}
+  AND DIFF>L_DIFF                                 {当前DIFF大于上述DIFF的最小值}
+  AND LOW=LLV(LOW,L_GOLDEN_CROSS+X_DEVIATE_T)     {当前最低价为更大范围内的最低价, 即创新低} 
+  AND L_MACD<0                                    {MACD的最小值小于0}
+  AND L_DIFF<0;                                   {DIFF的最小值小于0}
+
+{前一周期满足此条件, 即收盘价不再创新低}
+{并且MACD正在上升}
+DBL:REF(DBL_CORE,1)=1 AND MACD>REF(MACD,1);
