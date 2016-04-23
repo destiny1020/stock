@@ -1,7 +1,7 @@
 {基于失败案例的分析优化}
 {1. 当30分钟DIF处于多方且日线DIF/MACD安全时, 即使DIF微微下倾也入场}
 {2. 当30分钟出现顶背离的时候，不入场}
-{3. 当30分钟出现底背离的时候，入场}
+{3. 当30分钟出现底背离的时候，入场 --- 优化措施测试中}
 
 DIFF:=EMA(CLOSE,12)-EMA(CLOSE,26);
 DEA:=EMA(DIFF,9);
@@ -16,9 +16,9 @@ LOWER:=MID-2*STD(CLOSE,99);
 {引用均线数据}
 MA60:=MA(CLOSE,60);
 
-{引用日线数据}
-DIFF_DAY:MACD.DIF#DAY;
-MACD_DAY:MACD.MACD#DAY;
+{引用日线数据, 注意需要首先下载盘后数据}
+DIFF_DAY:=MACD.DIF#DAY;
+MACD_DAY:=MACD.MACD#DAY;
 
 {强弱系数定义}
 X_STRONG:=40;
@@ -49,9 +49,9 @@ F_DIFF:=IF(DIFF>=-X_DIFF_WEAK, DIFF * X_DIFF >= REF(DIFF, 1), 0);
 
 {测试日线数据是够安全, 注意1根日K表示8根30分钟K}
 {如果DIF正处于下跌过程中, 不参与}
-F_DIFF_DAY:IF(DIFF_DAY>=REF(DIFF_DAY, 8), 1, 0);
+F_DIFF_DAY:=IF(DIFF_DAY>=REF(DIFF_DAY, 8), 1, 0);
 {如果MACD正处于下降过程中, 不参与}
-F_MACD_DAY:IF(MACD_DAY>=REF(MACD_DAY, 8), 1, 0);
+F_MACD_DAY:=IF(MACD_DAY>=REF(MACD_DAY, 8), 1, 0);
 
 {测试是否发生了顶背离}
 C_HIGH:=HHV(CLOSE, X_DEVIATE_P);
@@ -72,21 +72,34 @@ L_DIFF_N:=LLVBARS(DIFF,L_GOLDEN_CROSS+X_DEVIATE_T);
 {如果DIF的最小值出现在上一次金叉之前，那么取DIFF的最小值}
 L_DIFF:=IF(L_DIFF_N>L_GOLDEN_CROSS,REF(DIFF,L_DIFF_N),0);
 
-DBL_CORE:=MACD<0                                  {当前的MACD小于0}
-  AND MACD>L_MACD                                 {当前的MACD大于上述MACD的最小值}
-  AND DIFF<0                                      {当前DIFF小于0}
-  AND DIFF>L_DIFF                                 {当前DIFF大于上述DIFF的最小值}
-  AND LOW=LLV(LOW,L_GOLDEN_CROSS+X_DEVIATE_T)     {当前最低价为更大范围内的最低价, 即创新低} 
-  AND L_MACD<0                                    {MACD的最小值小于0}
-  AND L_DIFF<0;                                   {DIFF的最小值小于0}
+{底背离调试使用}
+LOW_THRESHOLD:=1.01; {阈值限定在1%内}
+IS_LOWEST:LOW = LLV(LOW,L_GOLDEN_CROSS+X_DEVIATE_T);
+IS_A_LOWEST:LOW <= LLV(LOW,L_GOLDEN_CROSS+X_DEVIATE_T) * LOW_THRESHOLD;
+
+{不再要求当前MACD必须大于0}
+DBL_CORE: 
+  MACD>L_MACD           {当前的MACD大于上述MACD的最小值}
+  AND DIFF<0            {当前DIFF小于0}
+  AND DIFF>L_DIFF       {当前DIFF大于上述DIFF的最小值}
+  AND IS_A_LOWEST       {当前最低价接近更大范围内的最低价, 近乎创新低} 
+  AND L_MACD<0          {MACD的最小值小于0}
+  AND L_DIFF<0          {DIFF的最小值小于0}
+  AND LOW>=REF(LOW,1);  {当前最低价相比前一个周期不再更低}
 
 {前一周期满足此条件, 即收盘价不再创新低}
-{并且MACD正在上升}
-DBL:(REF(DBL_CORE,1)=1 AND MACD>REF(MACD,1)) * 100, NODRAW;
+{并且MACD开始上升或者下降趋势缓和: DIFF变化率不超过1%}
+DROP_SLOW: ABS((DIFF - REF(DIFF,1)) / REF(DIFF,1)) < 0.01 
+  && ABS((REF(DIFF,1) - REF(DIFF,2))/REF(DIFF,2)) > ABS((DIFF - REF(DIFF,1))/REF(DIFF,1))
+  && ABS((REF(MACD,1) - REF(MACD,2))/REF(MACD,2)) > ABS((MACD - REF(MACD,1))/REF(MACD,1));
+DIFF_MACD_OK: (DIFF>=REF(DIFF,1) && MACD>=REF(MACD,1)) || DROP_SLOW;
+{只显示收盘价较低的那个}
+DBL:(BARSLAST(DBL_CORE) <= 2 AND NOT(IS_LOWEST) AND DIFF_MACD_OK) * 100, NODRAW;
 STICKLINE(DBL > 0, DBL, 0, 5, 0), COLORBLUE;
 
 {入场标志}
-F_LONG_ENTER:=F_BOLL && F_DIFF && F_MACD && F_DIFF_DAY && F_MACD_DAY && NOT(F_PEAK_DEVIATE);
+F_LONG_ENTER:=F_BOLL && F_DIFF && F_MACD && F_DIFF_DAY && F_MACD_DAY && NOT(F_PEAK_DEVIATE)
+             || DBL;   {底背离也是入场点之一}
 
 {--------}
 
@@ -131,9 +144,9 @@ EXITLONG_M1:=EXITLONG_M && T1S_OK;
 
 {集合竞价是否卖出: 时间满足 && 前一交易日同时存在B以及S && B在S之前}
 EXITLONG_M2:=(MINUTE=0 && HOUR=10) 
-	&& REF(BARSLAST(ENTERLONG_M), 1) + 1 <= 8 
-	&& (REF(T1B, REF(BARSLAST(ENTERLONG_M), 1) + 1) = REF(T1S, REF(BARSLAST(EXITLONG_M), 1) + 1))
-	&& REF(BARSLAST(ENTERLONG_M), 1) > REF(BARSLAST(EXITLONG_M), 1);
+    && REF(BARSLAST(ENTERLONG_M), 1) + 1 <= 8 
+    && (REF(T1B, REF(BARSLAST(ENTERLONG_M), 1) + 1) = REF(T1S, REF(BARSLAST(EXITLONG_M), 1) + 1))
+    && REF(BARSLAST(ENTERLONG_M), 1) > REF(BARSLAST(EXITLONG_M), 1);
 
 {检查前方买入操作是否在卖出操作之后}
 L1_E:=REF(BARSLAST(ENTERLONG_M1), 1) + 1;
@@ -150,15 +163,15 @@ FINAL_EXIT2:=EXITLONG_M2;
 
 {计算收益率}
 R:=IF(FINAL_EXIT || FINAL_EXIT2, 
-	IF(FINAL_EXIT, 
-		1 + (CLOSE - REF(CLOSE, BARSLAST(FINAL_ENTER))) / REF(CLOSE, BARSLAST(FINAL_ENTER)), 
-		1 + (OPEN - REF(CLOSE, BARSLAST(FINAL_ENTER))) / REF(CLOSE, BARSLAST(FINAL_ENTER))), 
-	1);
+    IF(FINAL_EXIT, 
+        1 + (CLOSE - REF(CLOSE, BARSLAST(FINAL_ENTER))) / REF(CLOSE, BARSLAST(FINAL_ENTER)), 
+        1 + (OPEN - REF(CLOSE, BARSLAST(FINAL_ENTER))) / REF(CLOSE, BARSLAST(FINAL_ENTER))), 
+    1);
 ROI:IF(FINAL_EXIT || FINAL_EXIT2, 
-	IF(FINAL_EXIT, 
-		(CLOSE - REF(CLOSE, BARSLAST(FINAL_ENTER))) / REF(CLOSE, BARSLAST(FINAL_ENTER)) * 100, 
-		(OPEN - REF(CLOSE, BARSLAST(FINAL_ENTER))) / REF(CLOSE, BARSLAST(FINAL_ENTER)) * 100), 
-	0),NODRAW;
+    IF(FINAL_EXIT, 
+        (CLOSE - REF(CLOSE, BARSLAST(FINAL_ENTER))) / REF(CLOSE, BARSLAST(FINAL_ENTER)) * 100, 
+        (OPEN - REF(CLOSE, BARSLAST(FINAL_ENTER))) / REF(CLOSE, BARSLAST(FINAL_ENTER)) * 100), 
+    0),NODRAW;
 
 STICKLINE(ROI > 0, ROI * 10, 0, 10, 0), COLORRED;
 STICKLINE(ROI < 0, ROI * 10, 0, 10, 0), COLORGREEN;
