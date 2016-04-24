@@ -84,6 +84,8 @@ DBL_CORE:=MACD<0                                  {当前的MACD小于0}
 {并且MACD正在上升}
 DBL:=(REF(DBL_CORE,1)=1 AND MACD>REF(MACD,1)) * 100;
 
+{TOO_STRONG:=(CLOSE > OPEN) && (CLOSE - REF(CLOSE, 1)) / REF(CLOSE, 1) * 100 >= 5;}
+
 {入场标志}
 F_LONG_ENTER:=F_BOLL && F_DIFF && F_MACD && F_DIFF_DAY && F_MACD_DAY && NOT(F_PEAK_DEVIATE);
 
