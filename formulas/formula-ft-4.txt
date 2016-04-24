@@ -170,10 +170,18 @@ BN:SUM(FINAL_ENTER, 0);
 
 {交易次数 & 盈利与否}
 SN:SUM(FINAL_EXIT || FINAL_EXIT2, 0);
-W:=IF(ROI > 0, 1, 0);
+W_FLAG:=IF(ROI > 0, 1, 0);
+L_FLAG:=IF(ROI < 0, 1, 0);
+
+{统计成功收益的平均值以及失败亏损的平均值}
+PROI_SUM:=IF(ROI > 0, ROI, 0);
+NROI_SUM:=IF(ROI < 0, ROI, 0);
+
+AVG_PROI:SUM(PROI_SUM, 0) / SUM(W_FLAG, 0), COLORRED;
+AVG_NROI:SUM(NROI_SUM, 0) / SUM(L_FLAG, 0), COLORGREEN;
 
 {成功率}
-WIN:SUM(W, 0) / SN * 100;
+WIN:SUM(W_FLAG, 0) / SN * 100;
 
 {收益率}
 TROI:MULAR(R, 0);
