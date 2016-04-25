@@ -47,6 +47,9 @@ X_DIFF:=IF(MA60 > REF(MA60, 1) && DIFF > 0 && F_MACD, 1.1, 1);
 {测试DIFF:如果DIFF处于极弱区间, 不参与;否则只有当DIF止跌才参与}
 F_DIFF:=IF(DIFF>=-X_DIFF_WEAK, DIFF * X_DIFF >= REF(DIFF, 1), 0);
 
+{稳妥起见, 在顶背离多发区域不参与, 特征为DIF应该大于DEA}
+F_DIFF_GT_DEA:=IF(DIFF >= DEA, 1, 0);
+
 {测试日线数据是够安全, 注意1根日K表示8根30分钟K}
 {如果DIF正处于下跌过程中, 不参与}
 F_DIFF_DAY:=IF(DIFF_DAY>=REF(DIFF_DAY, 8), 1, 0);
@@ -85,7 +88,7 @@ DBL_CORE:=MACD<0                                  {当前的MACD小于0}
 DBL:=(REF(DBL_CORE,1)=1 AND MACD>REF(MACD,1)) * 100;
 
 {入场标志}
-F_LONG_ENTER:=F_BOLL && F_DIFF && F_MACD && F_DIFF_DAY && F_MACD_DAY && NOT(F_PEAK_DEVIATE);
+F_LONG_ENTER:=F_BOLL && F_DIFF && F_MACD && F_DIFF_GT_DEA && F_DIFF_DAY && F_MACD_DAY && NOT(F_PEAK_DEVIATE);
 
 {--------}
 
@@ -140,5 +143,5 @@ L2_E:=MIN(REF(BARSLAST(EXITLONG_M2), 1) + 1, REF(BARSLAST(EXITLONG_M1), 1) + 1);
 
 {以上和主图系统一样}
 
-{买入信号:30分钟收盘买入}
-ENTERLONG_M1;
+{买入信号:下午买入}
+EXIST(ENTERLONG_M1, 4) && EVERY(VOL > 0, 4) && (FINANCE(3) = 1 || FINANCE(3) = 2);
